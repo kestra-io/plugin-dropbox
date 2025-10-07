@@ -1,10 +1,10 @@
 {
-  "name": "plugin-template",
+  "name": "plugin-dropbox",
   "build": {
     "context": ".",
     "dockerfile": "Dockerfile"
   },
-  "workspaceFolder": "/workspaces/plugin-template",
+  "workspaceFolder": "/workspaces/plugin-dropbox",
   "forwardPorts": [8080],
   "customizations": {
     "vscode": {
