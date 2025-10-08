@@ -20,11 +20,11 @@
 
 <p align="center">
   <a href="https://twitter.com/kestra_io" style="margin: 0 10px;">
-        <img height="25" src="https://kestra.io/twitter.svg" alt="twitter" width="35" height="25" /></a>
+        <img src="https://kestra.io/twitter.svg" alt="twitter" width="35" height="25" /></a>
   <a href="https://www.linkedin.com/company/kestra/" style="margin: 0 10px;">
-        <img height="25" src="https://kestra.io/linkedin.svg" alt="linkedin" width="35" height="25" /></a> 
+        <img src="https://kestra.io/linkedin.svg" alt="linkedin" width="35" height="25" /></a>
   <a href="https://www.youtube.com/@kestra-io" style="margin: 0 10px;">
-        <img height="25" src="https://kestra.io/youtube.svg" alt="youtube" width="35" height="25" /></a>
+        <img src="https://kestra.io/youtube.svg" alt="youtube" width="35" height="25" /></a>
 </p>
 
 <br />
@@ -42,31 +42,6 @@
 
 ![Kestra orchestrator](https://kestra.io/video.gif)
 
-## Running the project in local
-### Prerequisites
-- Java 21
-- Docker
-
-### Running tests
-```
-./gradlew check --parallel
-```
-
-### Development
-
-`VSCode`:
-
-Follow the README.md within the `.devcontainer` folder for a quick and easy way to get up and running with developing plugins if you are using VSCode.
-
-`Other IDEs`:
-
-```
-./gradlew shadowJar && docker build -t kestra-custom . && docker run --rm -p 8080:8080 kestra-custom server local
-```
-> [!NOTE]
-> You need to relaunch this whole command everytime you make a change to your plugin
-
-go to http://localhost:8080, your plugin will be available to use
 
 ## Documentation
 * Full documentation can be found under: [kestra.io/docs](https://kestra.io/docs)
