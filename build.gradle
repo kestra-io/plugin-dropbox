@@ -49,6 +49,9 @@ dependencies {
     annotationProcessor group: "io.kestra", name: "processor", version: kestraVersion
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
+
+    // Dropbox
+    implementation "com.dropbox.core:dropbox-core-sdk:7.0.0"
 }
 
 
@@ -174,11 +177,11 @@ tasks.withType(GenerateModuleMetadata).configureEach {
 jar {
     manifest {
         attributes(
-                "X-Kestra-Name": project.name,
-                "X-Kestra-Title": "Dropbox",
-                "X-Kestra-Group": project.group + ".dropbox",
-                "X-Kestra-Description": project.description,
-                "X-Kestra-Version": project.version
+            "X-Kestra-Name": project.name,
+            "X-Kestra-Title": "Dropbox",
+            "X-Kestra-Group": project.group + ".dropbox",
+            "X-Kestra-Description": project.description,
+            "X-Kestra-Version": project.version
         )
     }
 }
