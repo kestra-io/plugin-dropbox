@@ -1,4 +1,4 @@
-package io.kestra.plugin.dropbox;
+package io.kestra.plugin.dropbox.files;
 
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.InvalidAccessTokenException;
@@ -16,6 +16,7 @@ import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
+import io.kestra.core.models.tasks.Task;
 import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,7 +29,6 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 
 @SuperBuilder
 @ToString
@@ -46,10 +46,11 @@ import java.util.List;
                 namespace: company.team
                 tasks:
                   - id: list_files_from_dropbox
-                    type: io.kestra.plugin.dropbox.ListFiles
+                    type: io.kestra.plugin.dropbox.files.List
                     accessToken: "{{ secrets.DROPBOX_ACCESS_TOKEN }}"
-                    path: "/My Kestra Files/Inputs"
+                    from: "/My Kestra Files/Inputs"
                     recursive: true
+                    fetchType: FETCH
                 """
         )
     },
@@ -62,7 +63,7 @@ import java.util.List;
     }
 )
 @Schema(title = "List files and folders in a Dropbox directory.")
-public class ListFiles implements RunnableTask<ListFiles.Output> {
+public class List extends Task implements RunnableTask<List.Output> {
 
     @Schema(title = "Dropbox access token.")
     @NotNull
@@ -75,7 +76,8 @@ public class ListFiles implements RunnableTask<ListFiles.Output> {
     private Object from;
 
     @Schema(title = "Whether to list files recursively in all sub-folders.")
-    private Property<Boolean> recursive;
+    @Builder.Default
+    private Property<Boolean> recursive = Property.ofValue(false);
 
     @Schema(title = "The maximum number of files to return.")
     @Builder.Default
@@ -87,7 +89,6 @@ public class ListFiles implements RunnableTask<ListFiles.Output> {
             "FETCH: Returns all rows in memory.\n" +
             "STORE: Returns all rows in a file stored in Kestra's internal storage."
     )
-    @NotNull
     @Builder.Default
     private Property<FetchType> fetchType = Property.ofValue(FetchType.FETCH);
 
@@ -125,7 +126,7 @@ public class ListFiles implements RunnableTask<ListFiles.Output> {
 
             ListFolderResult result = listFolderBuilder.start();
 
-            List<Metadata> allEntries = new ArrayList<>();
+            java.util.List<Metadata> allEntries = new ArrayList<>();
             while (true) {
                 allEntries.addAll(result.getEntries());
 
@@ -149,7 +150,7 @@ public class ListFiles implements RunnableTask<ListFiles.Output> {
                     }
                     break;
                 case FETCH:
-                    List<DropboxFile> dropboxFiles = allEntries.stream().map(DropboxFile::of).toList();
+                    java.util.List<DropboxFile> dropboxFiles = allEntries.stream().map(DropboxFile::of).toList();
                     outputBuilder.rows(dropboxFiles);
                     break;
                 case STORE:
@@ -191,7 +192,7 @@ public class ListFiles implements RunnableTask<ListFiles.Output> {
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
         @Schema(title = "The list of files and folders.", description = "Only populated if `fetchType` is `FETCH`.")
-        private final List<DropboxFile> rows;
+        private final java.util.List<DropboxFile> rows;
 
         @Schema(title = "The first file or folder found.", description = "Only populated if `fetchType` is `FETCH_ONE`.")
         private final DropboxFile row;
