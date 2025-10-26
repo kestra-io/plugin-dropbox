@@ -1,4 +1,4 @@
-package io.kestra.plugin.dropbox;
+package io.kestra.plugin.dropbox.files;
 
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.InvalidAccessTokenException;
@@ -29,7 +29,6 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 
 @SuperBuilder
 @ToString
@@ -47,7 +46,7 @@ import java.util.List;
                 namespace: company.team
                 tasks:
                   - id: list_files_from_dropbox
-                    type: io.kestra.plugin.dropbox.ListFiles
+                    type: io.kestra.plugin.dropbox.files.List
                     accessToken: "{{ secrets.DROPBOX_ACCESS_TOKEN }}"
                     from: "/My Kestra Files/Inputs"
                     recursive: true
@@ -64,7 +63,7 @@ import java.util.List;
     }
 )
 @Schema(title = "List files and folders in a Dropbox directory.")
-public class ListFiles extends Task implements RunnableTask<ListFiles.Output> {
+public class List extends Task implements RunnableTask<List.Output> {
 
     @Schema(title = "Dropbox access token.")
     @NotNull
@@ -127,7 +126,7 @@ public class ListFiles extends Task implements RunnableTask<ListFiles.Output> {
 
             ListFolderResult result = listFolderBuilder.start();
 
-            List<Metadata> allEntries = new ArrayList<>();
+            java.util.List<Metadata> allEntries = new ArrayList<>();
             while (true) {
                 allEntries.addAll(result.getEntries());
 
@@ -151,7 +150,7 @@ public class ListFiles extends Task implements RunnableTask<ListFiles.Output> {
                     }
                     break;
                 case FETCH:
-                    List<DropboxFile> dropboxFiles = allEntries.stream().map(DropboxFile::of).toList();
+                    java.util.List<DropboxFile> dropboxFiles = allEntries.stream().map(DropboxFile::of).toList();
                     outputBuilder.rows(dropboxFiles);
                     break;
                 case STORE:
@@ -193,7 +192,7 @@ public class ListFiles extends Task implements RunnableTask<ListFiles.Output> {
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
         @Schema(title = "The list of files and folders.", description = "Only populated if `fetchType` is `FETCH`.")
-        private final List<DropboxFile> rows;
+        private final java.util.List<DropboxFile> rows;
 
         @Schema(title = "The first file or folder found.", description = "Only populated if `fetchType` is `FETCH_ONE`.")
         private final DropboxFile row;

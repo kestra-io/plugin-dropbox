@@ -1,4 +1,4 @@
-package io.kestra.plugin.dropbox;
+package io.kestra.plugin.dropbox.files;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dropbox.core.InvalidAccessTokenException;
@@ -21,7 +21,6 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @KestraTest
-class ListFilesTest {
+class ListTest {
     @Inject
     private RunContextFactory runContextFactory;
 
@@ -56,7 +55,7 @@ class ListFilesTest {
         when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
         when(builderMock.start()).thenReturn(fakeResult);
 
-        ListFiles task = new ListFiles(
+        List task = new List(
             Property.ofValue("fake-token"),
             "/test-path",
             Property.ofValue(false),
@@ -69,7 +68,7 @@ class ListFilesTest {
             }
         };
 
-        ListFiles.Output output = task.run(runContext);
+        List.Output output = task.run(runContext);
 
         assertThat(output.getRows().size(), is(1));
         assertThat(output.getRows().getFirst().getId(), is("id:1234"));
@@ -93,7 +92,7 @@ class ListFilesTest {
         when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
         when(builderMock.start()).thenReturn(fakeResult);
 
-        ListFiles task = new ListFiles(
+        List task = new List(
             Property.ofValue("fake-token"),
             pathFileUri,
             Property.ofValue(false),
@@ -106,7 +105,7 @@ class ListFilesTest {
             }
         };
 
-        ListFiles.Output output = task.run(runContext);
+        List.Output output = task.run(runContext);
 
         assertThat(output.getRows().size(), is(1));
         assertThat(output.getRows().getFirst().getName(), is("test-uri.txt"));
@@ -129,7 +128,7 @@ class ListFilesTest {
         when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
         when(builderMock.start()).thenReturn(fakeResult);
 
-        ListFiles task = new ListFiles(
+        List task = new List(
             Property.ofValue("fake-token"),
             "/test-path",
             Property.ofValue(false),
@@ -142,13 +141,13 @@ class ListFilesTest {
             }
         };
 
-        ListFiles.Output output = task.run(runContext);
+        List.Output output = task.run(runContext);
 
         assertThat(output.getUri(), notNullValue());
         assertThat(output.getSize(), is(1L));
 
         try (InputStream inputStream = runContext.storage().getFile(output.getUri())) {
-            List<Map> results = FileSerde.readAll(new BufferedReader(new InputStreamReader(inputStream)), Map.class).collectList().block();
+            java.util.List<Map> results = FileSerde.readAll(new BufferedReader(new InputStreamReader(inputStream)), Map.class).collectList().block();
             Map<String, Object> deserializedObject = results.getFirst();
 
             assertThat(deserializedObject.get("name"), is("test.txt"));
@@ -168,7 +167,7 @@ class ListFilesTest {
         when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
         when(builderMock.start()).thenThrow(new InvalidAccessTokenException("test-request-id", "invalid token", null));
 
-        ListFiles task = new ListFiles(
+        List task = new List(
             Property.ofValue("fake-token"),
             "/test-path",
             Property.ofValue(false),
