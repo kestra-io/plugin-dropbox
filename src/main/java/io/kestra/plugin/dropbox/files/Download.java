@@ -43,7 +43,7 @@ import java.nio.charset.StandardCharsets;
                 tasks:
                   - id: download_report
                     type: io.kestra.plugin.dropbox.files.Download
-                    accessToken: "{{ secrets.DROPBOX_ACCESS_TOKEN }}"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     from: "/shared_reports/quarterly_report.csv"
                 """
         ),
@@ -60,7 +60,7 @@ import java.nio.charset.StandardCharsets;
                     # Kestra automatically generates the output URI
                   - id: download_dynamic_file
                     type: io.kestra.plugin.dropbox.files.Download
-                    accessToken: "{{ secrets.DROPBOX_ACCESS_TOKEN }}"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     from: "{{ outputs.generate_path_file.uri }}" # Reference the generated URI
                 """
         )

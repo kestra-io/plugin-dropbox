@@ -41,7 +41,7 @@ import java.nio.charset.StandardCharsets;
                 tasks:
                   - id: create_folder
                     type: io.kestra.plugin.dropbox.files.CreateFolder
-                    accessToken: "{{ secrets.DROPBOX_ACCESS_TOKEN }}"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     path: "/new_project_folder/sub_folder"
                     autorename: false
                 """
