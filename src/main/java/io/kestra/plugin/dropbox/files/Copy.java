@@ -41,8 +41,7 @@ import java.nio.charset.StandardCharsets;
                 tasks:
                   - id: copy_file
                     type: io.kestra.plugin.dropbox.files.Copy
-                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}
-"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     from: "/source/template.csv"
                     to: "/reports/new_report.csv"
                     autorename: false

@@ -47,8 +47,7 @@ import java.util.ArrayList;
                 tasks:
                   - id: list_files_from_dropbox
                     type: io.kestra.plugin.dropbox.files.List
-                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}
-"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     from: "/My Kestra Files/Inputs"
                     recursive: true
                     fetchType: FETCH

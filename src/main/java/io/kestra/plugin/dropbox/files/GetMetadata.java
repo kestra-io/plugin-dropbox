@@ -41,8 +41,7 @@ import java.nio.charset.StandardCharsets;
                 tasks:
                   - id: get_file_metadata
                     type: io.kestra.plugin.dropbox.files.GetMetadata
-                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}
-"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     path: "/kestra_uploads/my_file.txt"
                 """
         )

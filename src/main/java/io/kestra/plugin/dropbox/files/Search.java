@@ -49,8 +49,7 @@ import java.util.stream.Collectors;
                 tasks:
                   - id: search_for_reports
                     type: io.kestra.plugin.dropbox.files.Search
-                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}
-"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     query: "report.csv"
                     path: "/reports"
                     fetchType: FETCH

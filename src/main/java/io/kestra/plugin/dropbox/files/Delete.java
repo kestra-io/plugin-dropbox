@@ -41,8 +41,7 @@ import java.nio.charset.StandardCharsets;
                 tasks:
                   - id: delete_report
                     type: io.kestra.plugin.dropbox.files.Delete
-                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}
-"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}"
                     from: "/old_reports/stale_file.csv"
                 """
         )
