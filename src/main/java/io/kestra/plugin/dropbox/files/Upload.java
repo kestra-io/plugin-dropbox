@@ -45,7 +45,8 @@ import java.net.URI;
                     content: "This is the content of the file to be uploaded."
                   - id: upload_to_dropbox
                     type: io.kestra.plugin.dropbox.files.Upload
-                    accessToken: "{{ secrets.DROPBOX_ACCESS_TOKEN }}"
+                    accessToken: "{{ secret('DROPBOX_ACCESS_TOKEN') }}
+"
                     from: "{{ outputs.create_file_to_upload.uri }}" # URI from previous task
                     to: "/kestra_uploads/my_file.txt"
                     mode: "OVERWRITE"
