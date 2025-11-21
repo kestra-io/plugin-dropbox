@@ -1,0 +1,8 @@
+group: io.kestra.plugin.dropbox.files
+name: "files"
+title: "Dropbox Files"
+description: "This sub-group contains tasks for managing files and folders in Dropbox."
+body: ""
+videos: []
+createdBy: "Kestra Core Team"
+managedBy: "Kestra Core Team"
