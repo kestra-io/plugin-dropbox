@@ -1,8 +1,8 @@
 group: io.kestra.plugin.dropbox.files
 name: "files"
 title: "Dropbox Files"
-description: "This sub-group contains tasks for managing files and folders in Dropbox."
-body: ""
+description: "Tasks that manage files and folders in Dropbox."
+body: "Use these tasks to upload from Kestra storage, download back to it, list or search folders, and create, copy, move, or delete items while retrieving metadata when needed. All tasks require a Dropbox accessToken secret; Dropbox paths must begin with '/', and file-oriented steps accept Kestra storage URIs for inputs and outputs."
 videos: []
 createdBy: "Kestra Core Team"
 managedBy: "Kestra Core Team"

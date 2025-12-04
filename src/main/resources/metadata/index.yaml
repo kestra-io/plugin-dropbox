@@ -1,8 +1,8 @@
 group: io.kestra.plugin.dropbox
 name: "dropbox"
 title: "Dropbox"
-description: "This sub-group of plugins contains tasks for using Dropbox."
-body: ""
+description: "Tasks that connect Kestra workflows to Dropbox."
+body: "Authenticate with a Dropbox access token to orchestrate file operations such as upload, download, listing, search, copy, move, delete, and metadata retrieval; Dropbox paths should start with '/' and tasks can read or write via Kestra internal storage URIs."
 videos: []
 createdBy: "Kestra Core Team"
 managedBy: "Kestra Core Team"
