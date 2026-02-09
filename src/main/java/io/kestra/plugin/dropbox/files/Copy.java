@@ -49,30 +49,34 @@ import java.nio.charset.StandardCharsets;
         )
     }
 )
-@Schema(title = "Copy a file or folder to a different location in Dropbox.")
+@Schema(
+    title = "Copy Dropbox file or folder",
+    description = "Copies an item to another Dropbox path. Paths must start with `/`; can be read from kestra:// URIs. Conflicts can autorename (default false)."
+)
 public class Copy extends Task implements RunnableTask<Copy.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow reading source and writing destination.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path of the file or folder to be copied.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Source path",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
     private Object from;
 
     @Schema(
-        title = "The destination path where the file or folder should be copied.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Destination path",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
     private Object to;
 
     @Schema(
-        title = "If there's a conflict, have the Dropbox server try to autorename the file.",
-        description = "For example, appending (1) or (2).")
+        title = "Auto-rename on conflict",
+        description = "Default false. When true, Dropbox appends suffixes like (1) if destination exists."
+    )
     @Builder.Default
     private Property<Boolean> autorename = Property.ofValue(false);
 
@@ -157,7 +161,7 @@ public class Copy extends Task implements RunnableTask<Copy.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The metadata of the newly copied file or folder.")
+        @Schema(title = "Copied item metadata")
         private final DropboxFile file;
     }
 }

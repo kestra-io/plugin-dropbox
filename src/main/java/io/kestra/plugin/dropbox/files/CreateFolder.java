@@ -48,23 +48,27 @@ import java.nio.charset.StandardCharsets;
         )
     }
 )
-@Schema(title = "Create a new folder in Dropbox.")
+@Schema(
+    title = "Create folder in Dropbox",
+    description = "Creates a new Dropbox folder at the resolved path. Path must start with `/`; can be read from a kestra:// URI. Fails on conflicts unless `autorename` is true (default: false)."
+)
 public class CreateFolder extends Task implements RunnableTask<CreateFolder.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow writing to the target path.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path of the folder to create.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Folder path to create",
+        description = "Accepts a literal Dropbox path or a kestra:// URI pointing to a file that contains the path. Resolved path must start with `/`."
     )
     @NotNull
     private Object path;
 
     @Schema(
-        title = "If there's a conflict, have the Dropbox server try to autorename the file.",
-        description = "For example, appending (1) or (2).")
+        title = "Auto-rename on conflict",
+        description = "Default false. When true, Dropbox appends suffixes like (1) if the folder already exists."
+    )
     @Builder.Default
     private Property<Boolean> autorename = Property.ofValue(false);
 
@@ -143,7 +147,7 @@ public class CreateFolder extends Task implements RunnableTask<CreateFolder.Outp
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The metadata of the created folder.")
+        @Schema(title = "Created folder metadata")
         private final DropboxFile file;
     }
 }

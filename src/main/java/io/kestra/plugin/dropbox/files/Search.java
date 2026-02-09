@@ -57,34 +57,35 @@ import java.util.stream.Collectors;
         )
     }
 )
-@Schema(title = "Search for files and folders in Dropbox.")
+@Schema(
+    title = "Search Dropbox files and folders",
+    description = "Searches Dropbox for a query under an optional path. Path must start with `/` if provided and can come from kestra:// URI. Supports extension filters, max results, and `fetchType` (default FETCH) controlling memory vs storage output."
+)
 public class Search extends Task implements RunnableTask<Search.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow search within the specified scope.")
     @NotNull
     private Property<String> accessToken;
 
-    @Schema(title = "The string to search for.")
+    @Schema(title = "Search query")
     @NotNull
     private Property<String> query;
 
     @Schema(
-        title = "The path to search in (optional).",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Search path (optional)",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/` when set."
     )
     private Object path;
 
-    @Schema(title = "The maximum number of results to return.")
+    @Schema(title = "Maximum results")
     private Property<Integer> maxResults;
 
-    @Schema(title = "Restricts search to only files with the given extensions (e.g., 'jpg', 'png').")
+    @Schema(title = "File extensions filter", description = "Restrict results to listed extensions, e.g., `jpg`, `csv`.")
     private Property<List<String>> fileExtensions;
 
     @Schema(
-        title = "How to fetch the data.",
-        description = "FETCH_ONE: Returns a single row.\n" +
-            "FETCH: Returns all rows in memory.\n" +
-            "STORE: Returns all rows in a file stored in Kestra's internal storage."
+        title = "Fetch strategy",
+        description = "`FETCH_ONE`: return first match.\n`FETCH` (default): return all matches in memory.\n`STORE`: stream matches to Kestra storage and return URI."
     )
     @Builder.Default
     private Property<FetchType> fetchType = Property.ofValue(FetchType.FETCH);
@@ -224,16 +225,16 @@ public class Search extends Task implements RunnableTask<Search.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The list of search results.", description = "Only populated if `fetchType` is `FETCH`.")
+        @Schema(title = "Search results", description = "Populated when `fetchType` is `FETCH`.")
         private final List<DropboxFile> rows;
 
-        @Schema(title = "The first search result found.", description = "Only populated if `fetchType` is `FETCH_ONE`.")
+        @Schema(title = "First search result", description = "Populated when `fetchType` is `FETCH_ONE`.")
         private final DropboxFile row;
 
-        @Schema(title = "The URI of the file in Kestra's internal storage.", description = "Only populated if `fetchType` is `STORE`.")
+        @Schema(title = "Stored results URI", description = "Populated when `fetchType` is `STORE`.")
         private URI uri;
 
-        @Schema(title = "The number of results found.")
+        @Schema(title = "Result count")
         private final long size;
     }
 }
