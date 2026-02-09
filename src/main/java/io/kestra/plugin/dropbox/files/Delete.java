@@ -47,16 +47,19 @@ import java.nio.charset.StandardCharsets;
         )
     }
 )
-@Schema(title = "Delete a file or folder from Dropbox.")
+@Schema(
+    title = "Delete Dropbox file or folder",
+    description = "Removes a Dropbox item at the resolved path. Path must start with `/`; can be read from a kestra:// URI. Fails if not found or token lacks delete permission."
+)
 public class Delete extends Task implements RunnableTask<Delete.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow deleting the target path.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path of the file or folder to delete.",
-        description = "Can be a direct path as a string (e.g., `/my/file.txt`), or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Path to delete",
+        description = "Literal Dropbox path or kestra:// URI pointing to the path content. Resolved path must start with `/`."
     )
     @NotNull
     private Object from;
@@ -133,7 +136,7 @@ public class Delete extends Task implements RunnableTask<Delete.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The metadata of the deleted file or folder.")
+        @Schema(title = "Deleted item metadata")
         private final DropboxFile file;
     }
 }

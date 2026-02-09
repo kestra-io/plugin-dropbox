@@ -49,34 +49,38 @@ import java.nio.charset.StandardCharsets;
         )
     }
 )
-@Schema(title = "Move a file or folder to a different location in Dropbox.")
+@Schema(
+    title = "Move Dropbox file or folder",
+    description = "Moves an item to a new Dropbox path. Paths must start with `/`; can be read from kestra:// URIs. Conflicts can autorename (default false). Cross-user moves require `allowOwnershipTransfer`."
+)
 public class Move extends Task implements RunnableTask<Move.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow moving both source and destination paths.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path of the file or folder to be moved.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Source path",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
     private Object from;
 
     @Schema(
-        title = "The destination path where the file or folder should be moved.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Destination path",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
     private Object to;
 
     @Schema(
-        title = "If there's a conflict, have the Dropbox server try to autorename the file.",
-        description = "For example, appending (1) or (2).")
+        title = "Auto-rename on conflict",
+        description = "Default false. When true, Dropbox appends suffixes like (1) if destination exists."
+    )
     @Builder.Default
     private Property<Boolean> autorename = Property.ofValue(false);
 
-    @Schema(title = "Allow move to be performed even if it is between two different users.")
+    @Schema(title = "Allow ownership transfer", description = "Default false. Enables moves across different owners.")
     @Builder.Default
     private Property<Boolean> allowOwnershipTransfer = Property.ofValue(false);
 
@@ -163,7 +167,7 @@ public class Move extends Task implements RunnableTask<Move.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The metadata of the moved file or folder.")
+        @Schema(title = "Moved item metadata")
         private final DropboxFile file;
     }
 }

@@ -62,32 +62,33 @@ import java.util.ArrayList;
         )
     }
 )
-@Schema(title = "List files and folders in a Dropbox directory.")
+@Schema(
+    title = "List Dropbox directory entries",
+    description = "Lists files and folders under a path (default root). Path can come from a string or kestra:// URI and should start with `/` when set. Supports recursion, limit (default 2000), and `fetchType` (default FETCH) to control memory vs storage output."
+)
 public class List extends Task implements RunnableTask<List.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow listing the target path.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path to the directory to list.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI of a file containing the path."
+        title = "Directory path",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Empty or null lists root. Should start with `/` when provided."
     )
     private Object from;
 
-    @Schema(title = "Whether to list files recursively in all sub-folders.")
+    @Schema(title = "Recursive listing", description = "Default false. When true, traverses sub-folders.")
     @Builder.Default
     private Property<Boolean> recursive = Property.ofValue(false);
 
-    @Schema(title = "The maximum number of files to return.")
+    @Schema(title = "Maximum entries", description = "Default 2000. Passed to Dropbox API as limit.")
     @Builder.Default
     private Property<Integer> limit = Property.ofValue(2000);
 
     @Schema(
-        title = "How to fetch the data.",
-        description = "FETCH_ONE: Returns a single row.\n" +
-            "FETCH: Returns all rows in memory.\n" +
-            "STORE: Returns all rows in a file stored in Kestra's internal storage."
+        title = "Fetch strategy",
+        description = "`FETCH_ONE`: return first entry.\n`FETCH` (default): return all entries in memory.\n`STORE`: stream entries to Kestra storage and return URI."
     )
     @Builder.Default
     private Property<FetchType> fetchType = Property.ofValue(FetchType.FETCH);
@@ -191,16 +192,16 @@ public class List extends Task implements RunnableTask<List.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The list of files and folders.", description = "Only populated if `fetchType` is `FETCH`.")
+        @Schema(title = "Directory entries", description = "Populated when `fetchType` is `FETCH`.")
         private final java.util.List<DropboxFile> rows;
 
-        @Schema(title = "The first file or folder found.", description = "Only populated if `fetchType` is `FETCH_ONE`.")
+        @Schema(title = "First entry", description = "Populated when `fetchType` is `FETCH_ONE`.")
         private final DropboxFile row;
 
-        @Schema(title = "The URI of the file in Kestra's internal storage.", description = "Only populated if `fetchType` is `STORE`.")
+        @Schema(title = "Stored entries URI", description = "Populated when `fetchType` is `STORE`.")
         private URI uri;
 
-        @Schema(title = "The number of files and folders found.")
+        @Schema(title = "Entry count")
         private final long size;
     }
 }
