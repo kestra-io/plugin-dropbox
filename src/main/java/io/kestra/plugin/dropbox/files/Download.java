@@ -66,16 +66,19 @@ import java.nio.charset.StandardCharsets;
         )
     }
 )
-@Schema(title = "Download a file from Dropbox.")
+@Schema(
+    title = "Download Dropbox file to storage",
+    description = "Downloads a Dropbox file and writes it to Kestra internal storage. Source path must start with `/` or be read from a kestra:// URI. Fails if the path is missing or token lacks read access."
+)
 public class Download extends Task implements RunnableTask<Download.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow reading the source path.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path of the file to download.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Path to download",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
     private Object from;
@@ -154,10 +157,10 @@ public class Download extends Task implements RunnableTask<Download.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The URI of the downloaded file in Kestra's internal storage.")
+        @Schema(title = "Downloaded file URI")
         private final URI uri;
 
-        @Schema(title = "The metadata of the downloaded file from Dropbox.")
+        @Schema(title = "Downloaded file metadata")
         private final FileMetadata metadata;
     }
 }

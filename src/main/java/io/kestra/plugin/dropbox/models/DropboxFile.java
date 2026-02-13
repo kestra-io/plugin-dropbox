@@ -12,22 +12,22 @@ import java.util.Date;
 @Builder
 @Getter
 public class DropboxFile {
-    @Schema(title = "The file or folder name.")
+    @Schema(title = "Item name")
     private final String name;
 
-    @Schema(title = "The unique ID of the file or folder.")
+    @Schema(title = "Unique item ID", description = "Dropbox path_lower for the entry.")
     private final String id;
 
-    @Schema(title = "The lower-case version of the path for display.")
+    @Schema(title = "Display path", description = "Lower-case path for display.")
     private final String path;
 
-    @Schema(title = "The type of the entry.", description = "Can be 'file' or 'folder'.")
+    @Schema(title = "Entry type", description = "Either 'file' or 'folder'.")
     private final String type;
 
-    @Schema(title = "The file size in bytes.", description = "Null for folders.")
+    @Schema(title = "Size in bytes", description = "Null for folders.")
     private final Long size;
 
-    @Schema(title = "The last time the file was modified on Dropbox.")
+    @Schema(title = "Client modified time", description = "Last modified timestamp from Dropbox.")
     private final Date clientModified;
 
     public static DropboxFile of(Metadata metadata) {

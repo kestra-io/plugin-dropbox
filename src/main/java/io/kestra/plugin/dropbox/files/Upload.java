@@ -54,38 +54,40 @@ import java.net.URI;
         )
     }
 )
-@Schema(title = "Upload a file to Dropbox.")
+@Schema(
+    title = "Upload file to Dropbox",
+    description = "Uploads a file from Kestra internal storage to a Dropbox path. Destination must start with `/`. Honors `mode` (default ADD) and optional server-side `autorename` when conflicts occur."
+)
 public class Upload extends Task implements RunnableTask<Upload.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow writing to the destination path.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The source URI of the file in Kestra's internal storage.",
-        description = "Can be a Kestra URI as a string (e.g., '{{ outputs.prev_task.uri }}') or a URI object."
+        title = "Source file URI",
+        description = "Kestra storage URI string (e.g., `{{ outputs.prev_task.uri }}`) or URI object."
     )
     @NotNull
     private Object from;
 
     @Schema(
-        title = "The destination path in Dropbox where the file should be uploaded.",
-        description = "Must start with a '/'. Example: `/my_folder/my_uploaded_file.txt`."
+        title = "Destination Dropbox path",
+        description = "Must start with `/`, e.g., `/my_folder/file.txt`."
     )
     @NotNull
     private Property<String> to;
 
     @Schema(
-        title = "Selects what to do if a file already exists at the destination path.",
-        description = "`ADD`: Do not overwrite, add the new file with a suffix (e.g., file (1).txt).\n" +
-            "`OVERWRITE`: Overwrite the existing file."
+        title = "Write mode on conflict",
+        description = "`ADD` (default): keep existing file; new upload may be suffixed.\n`OVERWRITE`: replace existing file."
     )
     @Builder.Default
     private Property<String> mode = Property.ofValue("ADD");
 
     @Schema(
-        title = "If there's a conflict, have the Dropbox server try to autorename the file.",
-        description = "For example, appending (1) or (2). Effective only if `mode` is `ADD`."
+        title = "Auto-rename on conflict",
+        description = "Default false. When true with `ADD`, Dropbox appends suffixes like (1) if the path exists."
     )
     @Builder.Default
     private Property<Boolean> autorename = Property.ofValue(false);
@@ -174,7 +176,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The metadata of the uploaded file from Dropbox.")
+        @Schema(title = "Uploaded file metadata")
         private final FileMetadata metadata;
     }
 }

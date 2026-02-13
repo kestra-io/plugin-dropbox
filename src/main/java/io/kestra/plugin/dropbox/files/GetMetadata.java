@@ -47,21 +47,24 @@ import java.nio.charset.StandardCharsets;
         )
     }
 )
-@Schema(title = "Get metadata for a file or folder from Dropbox.")
+@Schema(
+    title = "Retrieve Dropbox item metadata",
+    description = "Retrieves metadata for a Dropbox file or folder. Path must start with `/` or come from a kestra:// URI. Optional media info disabled by default."
+)
 public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output> {
 
-    @Schema(title = "Dropbox access token.")
+    @Schema(title = "Dropbox access token", description = "Token must allow reading the target path.")
     @NotNull
     private Property<String> accessToken;
 
     @Schema(
-        title = "The path of the file or folder to get metadata for.",
-        description = "Can be a direct path as a string, or a Kestra internal storage URI (kestra://...) of a file containing the path."
+        title = "Path to inspect",
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
     private Object path;
 
-    @Schema(title = "If true, media info will be in the response.")
+    @Schema(title = "Include media info", description = "Default false. When true, returns media info if available.")
     @Builder.Default
     private Property<Boolean> includeMediaInfo = Property.ofValue(false);
 
@@ -141,7 +144,7 @@ public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output
     @SuperBuilder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "The metadata of the file or folder.")
+        @Schema(title = "Metadata for the item")
         private final DropboxFile file;
     }
 }
