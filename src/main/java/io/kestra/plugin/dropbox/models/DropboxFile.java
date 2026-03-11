@@ -1,13 +1,14 @@
 package io.kestra.plugin.dropbox.models;
 
+import java.util.Date;
+
 import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.FolderMetadata;
 import com.dropbox.core.v2.files.Metadata;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.Date;
 
 @Builder
 @Getter

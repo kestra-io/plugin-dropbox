@@ -1,16 +1,20 @@
 package io.kestra.plugin.dropbox.files;
 
+import java.util.Locale;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import com.dropbox.core.LocalizedText;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
+
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -78,7 +82,8 @@ class CopyTest {
 
         RelocationError relocationError = RelocationError.fromLookup(LookupError.NOT_FOUND); // CORRECTED
         LocalizedText userMessage = new LocalizedText("File not found.", Locale.ENGLISH.toLanguageTag());
-        RelocationErrorException copyErrorException = new RelocationErrorException( // CORRECTED
+        RelocationErrorException copyErrorException = new RelocationErrorException(
+            // CORRECTED
             "copy_v2", "test-request-id", userMessage, relocationError
         );
 

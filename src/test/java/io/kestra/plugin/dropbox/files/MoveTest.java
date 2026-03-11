@@ -1,21 +1,24 @@
 package io.kestra.plugin.dropbox.files;
 
-import com.dropbox.core.LocalizedText;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.*;
-import io.kestra.core.junit.annotations.KestraTest;
-import io.kestra.core.models.property.Property;
-import io.kestra.core.runners.RunContext;
-import io.kestra.core.runners.RunContextFactory;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import com.dropbox.core.LocalizedText;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.*;
+
+import io.kestra.core.junit.annotations.KestraTest;
+import io.kestra.core.models.property.Property;
+import io.kestra.core.runners.RunContext;
+import io.kestra.core.runners.RunContextFactory;
+
+import jakarta.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -83,7 +86,6 @@ class MoveTest {
 
         InputStream toStream = new ByteArrayInputStream(toPath.getBytes(StandardCharsets.UTF_8));
         URI toUri = runContext.storage().putFile(toStream, "to.txt");
-
 
         // Mocking
         DbxClientV2 clientMock = mock(DbxClientV2.class);

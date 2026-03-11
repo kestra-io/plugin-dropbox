@@ -1,21 +1,24 @@
 package io.kestra.plugin.dropbox.files;
 
-import com.dropbox.core.LocalizedText;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.*;
-import io.kestra.core.junit.annotations.KestraTest;
-import io.kestra.core.models.property.Property;
-import io.kestra.core.runners.RunContext;
-import io.kestra.core.runners.RunContextFactory;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
-
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
+
+import com.dropbox.core.LocalizedText;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.*;
+
+import io.kestra.core.junit.annotations.KestraTest;
+import io.kestra.core.models.property.Property;
+import io.kestra.core.runners.RunContext;
+import io.kestra.core.runners.RunContextFactory;
+
+import jakarta.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -45,7 +48,8 @@ class DownloadTest {
         when(metadataMock.getName()).thenReturn("file.csv");
         when(metadataMock.getSize()).thenReturn((long) fileContent.length());
 
-        when(downloadBuilderMock.download(any(OutputStream.class))).thenAnswer((Answer<FileMetadata>) invocation -> {
+        when(downloadBuilderMock.download(any(OutputStream.class))).thenAnswer((Answer<FileMetadata>) invocation ->
+        {
             OutputStream providedOutputStream = invocation.getArgument(0);
             providedOutputStream.write(fileContent.getBytes(StandardCharsets.UTF_8));
             return metadataMock;
@@ -70,8 +74,10 @@ class DownloadTest {
         assertThat(output.getMetadata().getSize(), is((long) fileContent.length()));
 
         // Verify content
-        try (var storedInputStream = runContext.storage().getFile(output.getUri());
-             var reader = new BufferedReader(new InputStreamReader(storedInputStream, StandardCharsets.UTF_8))) {
+        try (
+            var storedInputStream = runContext.storage().getFile(output.getUri());
+            var reader = new BufferedReader(new InputStreamReader(storedInputStream, StandardCharsets.UTF_8))
+        ) {
             String storedContent = reader.readLine();
             assertThat(storedContent, is(fileContent));
         }
@@ -85,7 +91,6 @@ class DownloadTest {
         InputStream pathContentStream = new ByteArrayInputStream(filePath.getBytes(StandardCharsets.UTF_8));
         URI pathFileUri = runContext.storage().putFile(pathContentStream, "path.txt");
 
-
         // Mocking
         DbxClientV2 clientMock = mock(DbxClientV2.class);
         DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
@@ -97,12 +102,12 @@ class DownloadTest {
         when(metadataMock.getName()).thenReturn("data.txt");
         when(metadataMock.getSize()).thenReturn((long) fileContent.length());
 
-        when(downloadBuilderMock.download(any(OutputStream.class))).thenAnswer((Answer<FileMetadata>) invocation -> {
+        when(downloadBuilderMock.download(any(OutputStream.class))).thenAnswer((Answer<FileMetadata>) invocation ->
+        {
             OutputStream providedOutputStream = invocation.getArgument(0);
             providedOutputStream.write(fileContent.getBytes(StandardCharsets.UTF_8));
             return metadataMock;
         });
-
 
         // Task Execution
         Download task = new Download(
@@ -122,13 +127,14 @@ class DownloadTest {
         assertThat(output.getMetadata().getName(), is("data.txt"));
 
         // Verify content
-        try (var storedInputStream = runContext.storage().getFile(output.getUri());
-             var reader = new BufferedReader(new InputStreamReader(storedInputStream, StandardCharsets.UTF_8))) {
+        try (
+            var storedInputStream = runContext.storage().getFile(output.getUri());
+            var reader = new BufferedReader(new InputStreamReader(storedInputStream, StandardCharsets.UTF_8))
+        ) {
             String storedContent = reader.readLine();
             assertThat(storedContent, is(fileContent));
         }
     }
-
 
     @Test
     void run_downloadError_throwsException() throws Exception {

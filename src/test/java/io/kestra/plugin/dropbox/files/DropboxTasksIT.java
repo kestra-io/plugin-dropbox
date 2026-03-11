@@ -1,21 +1,23 @@
 package io.kestra.plugin.dropbox.files;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
+import org.slf4j.Logger;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.utils.IdUtils;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIf;
-import org.slf4j.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
+import jakarta.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -170,8 +172,10 @@ class DropboxTasksIT {
                 .run(runContext);
 
             // Verify content
-            try (var storedInputStream = runContext.storage().getFile(downloadOutput.getUri());
-                 var reader = new java.io.BufferedReader(new java.io.InputStreamReader(storedInputStream, StandardCharsets.UTF_8))) {
+            try (
+                var storedInputStream = runContext.storage().getFile(downloadOutput.getUri());
+                var reader = new java.io.BufferedReader(new java.io.InputStreamReader(storedInputStream, StandardCharsets.UTF_8))
+            ) {
                 String storedContent = reader.readLine();
                 assertThat(storedContent, is(testFileContent));
             }

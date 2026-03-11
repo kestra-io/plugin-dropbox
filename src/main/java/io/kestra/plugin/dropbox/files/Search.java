@@ -1,5 +1,14 @@
 package io.kestra.plugin.dropbox.files;
 
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.InvalidAccessTokenException;
 import com.dropbox.core.RateLimitException;
@@ -9,6 +18,7 @@ import com.dropbox.core.v2.files.SearchMatchV2;
 import com.dropbox.core.v2.files.SearchOptions;
 import com.dropbox.core.v2.files.SearchV2Result;
 import com.google.common.annotations.VisibleForTesting;
+
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.executions.metrics.Counter;
@@ -19,18 +29,11 @@ import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.dropbox.models.DropboxFile;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.slf4j.Logger;
-
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @SuperBuilder
 @ToString
@@ -89,7 +92,6 @@ public class Search extends Task implements RunnableTask<Search.Output> {
     )
     @Builder.Default
     private Property<FetchType> fetchType = Property.ofValue(FetchType.FETCH);
-
 
     @Override
     @SuppressWarnings("unchecked")
