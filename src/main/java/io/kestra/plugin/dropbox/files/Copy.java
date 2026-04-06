@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -60,6 +61,7 @@ public class Copy extends Task implements RunnableTask<Copy.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow reading source and writing destination.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(
@@ -67,6 +69,7 @@ public class Copy extends Task implements RunnableTask<Copy.Output> {
         description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object from;
 
     @Schema(
@@ -74,6 +77,7 @@ public class Copy extends Task implements RunnableTask<Copy.Output> {
         description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object to;
 
     @Schema(
@@ -81,6 +85,7 @@ public class Copy extends Task implements RunnableTask<Copy.Output> {
         description = "Default false. When true, Dropbox appends suffixes like (1) if destination exists."
     )
     @Builder.Default
+    @PluginProperty(group = "destination")
     private Property<Boolean> autorename = Property.ofValue(false);
 
     @Override

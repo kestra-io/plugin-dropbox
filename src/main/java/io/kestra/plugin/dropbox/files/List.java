@@ -32,6 +32,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -73,20 +74,24 @@ public class List extends Task implements RunnableTask<List.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow listing the target path.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(
         title = "Directory path",
         description = "Literal Dropbox path or kestra:// URI containing the path. Empty or null lists root. Should start with `/` when provided."
     )
+    @PluginProperty(group = "source")
     private Object from;
 
     @Schema(title = "Recursive listing", description = "Default false. When true, traverses sub-folders.")
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<Boolean> recursive = Property.ofValue(false);
 
     @Schema(title = "Maximum entries", description = "Default 2000. Passed to Dropbox API as limit.")
     @Builder.Default
+    @PluginProperty(group = "processing")
     private Property<Integer> limit = Property.ofValue(2000);
 
     @Schema(
@@ -94,6 +99,7 @@ public class List extends Task implements RunnableTask<List.Output> {
         description = "`FETCH_ONE`: return first entry.\n`FETCH` (default): return all entries in memory.\n`STORE`: stream entries to Kestra storage and return URI."
     )
     @Builder.Default
+    @PluginProperty(group = "processing")
     private Property<FetchType> fetchType = Property.ofValue(FetchType.FETCH);
 
     @Override

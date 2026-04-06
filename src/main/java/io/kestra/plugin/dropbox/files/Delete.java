@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -58,6 +59,7 @@ public class Delete extends Task implements RunnableTask<Delete.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow deleting the target path.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(
@@ -65,6 +67,7 @@ public class Delete extends Task implements RunnableTask<Delete.Output> {
         description = "Literal Dropbox path or kestra:// URI pointing to the path content. Resolved path must start with `/`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object from;
 
     @Override
