@@ -34,6 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -68,22 +69,27 @@ public class Search extends Task implements RunnableTask<Search.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow search within the specified scope.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(title = "Search query")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> query;
 
     @Schema(
         title = "Search path (optional)",
         description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/` when set."
     )
+    @PluginProperty(group = "source")
     private Object path;
 
     @Schema(title = "Maximum results")
+    @PluginProperty(group = "processing")
     private Property<Integer> maxResults;
 
     @Schema(title = "File extensions filter", description = "Restrict results to listed extensions, e.g., `jpg`, `csv`.")
+    @PluginProperty(group = "source")
     private Property<List<String>> fileExtensions;
 
     @Schema(
@@ -91,6 +97,7 @@ public class Search extends Task implements RunnableTask<Search.Output> {
         description = "`FETCH_ONE`: return first match.\n`FETCH` (default): return all matches in memory.\n`STORE`: stream matches to Kestra storage and return URI."
     )
     @Builder.Default
+    @PluginProperty(group = "processing")
     private Property<FetchType> fetchType = Property.ofValue(FetchType.FETCH);
 
     @Override

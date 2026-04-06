@@ -9,26 +9,33 @@ import com.dropbox.core.v2.files.Metadata;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @Builder
 @Getter
 public class DropboxFile {
     @Schema(title = "Item name")
+    @PluginProperty(group = "advanced")
     private final String name;
 
     @Schema(title = "Unique item ID", description = "Dropbox path_lower for the entry.")
+    @PluginProperty(group = "advanced")
     private final String id;
 
     @Schema(title = "Display path", description = "Lower-case path for display.")
+    @PluginProperty(group = "advanced")
     private final String path;
 
     @Schema(title = "Entry type", description = "Either 'file' or 'folder'.")
+    @PluginProperty(group = "advanced")
     private final String type;
 
     @Schema(title = "Size in bytes", description = "Null for folders.")
+    @PluginProperty(group = "advanced")
     private final Long size;
 
     @Schema(title = "Client modified time", description = "Last modified timestamp from Dropbox.")
+    @PluginProperty(group = "advanced")
     private final Date clientModified;
 
     public static DropboxFile of(Metadata metadata) {

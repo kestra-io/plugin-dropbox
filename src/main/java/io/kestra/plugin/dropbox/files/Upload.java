@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -65,6 +66,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow writing to the destination path.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(
@@ -72,6 +74,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
         description = "Kestra storage URI string (e.g., `{{ outputs.prev_task.uri }}`) or URI object."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object from;
 
     @Schema(
@@ -79,6 +82,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
         description = "Must start with `/`, e.g., `/my_folder/file.txt`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> to;
 
     @Schema(
@@ -86,6 +90,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
         description = "`ADD` (default): keep existing file; new upload may be suffixed.\n`OVERWRITE`: replace existing file."
     )
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<String> mode = Property.ofValue("ADD");
 
     @Schema(
@@ -93,6 +98,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
         description = "Default false. When true with `ADD`, Dropbox appends suffixes like (1) if the path exists."
     )
     @Builder.Default
+    @PluginProperty(group = "destination")
     private Property<Boolean> autorename = Property.ofValue(false);
 
     @Override

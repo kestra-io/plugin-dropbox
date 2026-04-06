@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -59,6 +60,7 @@ public class CreateFolder extends Task implements RunnableTask<CreateFolder.Outp
 
     @Schema(title = "Dropbox access token", description = "Token must allow writing to the target path.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(
@@ -66,6 +68,7 @@ public class CreateFolder extends Task implements RunnableTask<CreateFolder.Outp
         description = "Accepts a literal Dropbox path or a kestra:// URI pointing to a file that contains the path. Resolved path must start with `/`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object path;
 
     @Schema(
@@ -73,6 +76,7 @@ public class CreateFolder extends Task implements RunnableTask<CreateFolder.Outp
         description = "Default false. When true, Dropbox appends suffixes like (1) if the folder already exists."
     )
     @Builder.Default
+    @PluginProperty(group = "destination")
     private Property<Boolean> autorename = Property.ofValue(false);
 
     @Override

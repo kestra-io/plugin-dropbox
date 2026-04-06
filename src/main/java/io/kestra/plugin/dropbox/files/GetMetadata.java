@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -58,6 +59,7 @@ public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output
 
     @Schema(title = "Dropbox access token", description = "Token must allow reading the target path.")
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> accessToken;
 
     @Schema(
@@ -65,10 +67,12 @@ public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output
         description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Object path;
 
     @Schema(title = "Include media info", description = "Default false. When true, returns media info if available.")
     @Builder.Default
+    @PluginProperty(group = "advanced")
     private Property<Boolean> includeMediaInfo = Property.ofValue(false);
 
     @Override
