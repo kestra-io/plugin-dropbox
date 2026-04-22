@@ -74,7 +74,7 @@ public class List extends Task implements RunnableTask<List.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow listing the target path.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(

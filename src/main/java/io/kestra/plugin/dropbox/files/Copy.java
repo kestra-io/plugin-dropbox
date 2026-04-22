@@ -61,7 +61,7 @@ public class Copy extends Task implements RunnableTask<Copy.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow reading source and writing destination.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(
