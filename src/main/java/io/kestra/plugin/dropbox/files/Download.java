@@ -78,7 +78,7 @@ public class Download extends Task implements RunnableTask<Download.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow reading the source path.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(

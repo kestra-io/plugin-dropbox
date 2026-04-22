@@ -66,7 +66,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow writing to the destination path.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(

@@ -69,7 +69,7 @@ public class Search extends Task implements RunnableTask<Search.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow search within the specified scope.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(title = "Search query")

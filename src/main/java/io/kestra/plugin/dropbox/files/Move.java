@@ -61,7 +61,7 @@ public class Move extends Task implements RunnableTask<Move.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow moving both source and destination paths.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(

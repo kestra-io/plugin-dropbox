@@ -59,7 +59,7 @@ public class Delete extends Task implements RunnableTask<Delete.Output> {
 
     @Schema(title = "Dropbox access token", description = "Token must allow deleting the target path.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(

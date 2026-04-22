@@ -60,7 +60,7 @@ public class CreateFolder extends Task implements RunnableTask<CreateFolder.Outp
 
     @Schema(title = "Dropbox access token", description = "Token must allow writing to the target path.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(

@@ -59,7 +59,7 @@ public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output
 
     @Schema(title = "Dropbox access token", description = "Token must allow reading the target path.")
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(group = "main", secret = true)
     private Property<String> accessToken;
 
     @Schema(
