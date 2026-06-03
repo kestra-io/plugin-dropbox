@@ -102,10 +102,6 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest-library"
 }
 
-dependencies {
-    testImplementation enforcedPlatform("io.kestra:platform:$kestraVersion")
-}
-
 /**********************************************************************************************************************\
  * Jacoco
  **********************************************************************************************************************/
