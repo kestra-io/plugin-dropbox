@@ -165,7 +165,7 @@ public class List extends Task implements RunnableTask<List.Output> {
                     break;
                 case STORE:
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
-                    try (OutputStream outputStream = new FileOutputStream(tempFile)) {
+                    try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (Metadata entry : allEntries) {
                             FileSerde.write(outputStream, DropboxFile.of(entry));
                         }

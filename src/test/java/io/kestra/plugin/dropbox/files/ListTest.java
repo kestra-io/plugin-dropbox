@@ -149,8 +149,8 @@ class ListTest {
         assertThat(output.getUri(), notNullValue());
         assertThat(output.getSize(), is(1L));
 
-        try (InputStream inputStream = runContext.storage().getFile(output.getUri())) {
-            java.util.List<Map> results = FileSerde.readAll(new BufferedReader(new InputStreamReader(inputStream)), Map.class).collectList().block();
+        try (var inputStream = new BufferedInputStream(runContext.storage().getFile(output.getUri()))) {
+            java.util.List<Map> results = FileSerde.readAll(inputStream, Map.class).collectList().block();
             Map<String, Object> deserializedObject = results.getFirst();
 
             assertThat(deserializedObject.get("name"), is("test.txt"));
