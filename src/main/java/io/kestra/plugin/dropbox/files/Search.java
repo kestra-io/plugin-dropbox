@@ -172,7 +172,7 @@ public class Search extends Task implements RunnableTask<Search.Output> {
                     break;
                 case STORE:
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
-                    try (OutputStream outputStream = new FileOutputStream(tempFile)) {
+                    try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (DropboxFile file : dropboxFiles) {
                             FileSerde.write(outputStream, file);
                         }

@@ -1,8 +1,7 @@
 package io.kestra.plugin.dropbox.files;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -138,8 +137,8 @@ class SearchTest {
         assertThat(output.getSize(), is(1L));
 
         // Verify content
-        try (InputStream inputStream = runContext.storage().getFile(output.getUri())) {
-            List<Map> results = FileSerde.readAll(new BufferedReader(new InputStreamReader(inputStream)), Map.class).collectList().block();
+        try (var inputStream = new BufferedInputStream(runContext.storage().getFile(output.getUri()))) {
+            List<Map> results = FileSerde.readAll(inputStream, Map.class).collectList().block();
             Map<String, Object> deserializedObject = results.get(0);
 
             assertThat(deserializedObject.get("name"), is("report.csv"));
