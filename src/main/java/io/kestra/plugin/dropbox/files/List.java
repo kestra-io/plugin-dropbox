@@ -72,6 +72,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class List extends Task implements RunnableTask<List.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow listing the target path.")
     @NotNull
     @PluginProperty(group = "main", secret = true)
