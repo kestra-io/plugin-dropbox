@@ -57,6 +57,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class Delete extends Task implements RunnableTask<Delete.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow deleting the target path.")
     @NotNull
     @PluginProperty(group = "main", secret = true)

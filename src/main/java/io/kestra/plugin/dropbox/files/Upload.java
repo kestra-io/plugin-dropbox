@@ -64,6 +64,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class Upload extends Task implements RunnableTask<Upload.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow writing to the destination path.")
     @NotNull
     @PluginProperty(group = "main", secret = true)

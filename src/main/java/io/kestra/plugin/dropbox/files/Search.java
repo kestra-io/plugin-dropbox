@@ -67,6 +67,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class Search extends Task implements RunnableTask<Search.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow search within the specified scope.")
     @NotNull
     @PluginProperty(group = "main", secret = true)

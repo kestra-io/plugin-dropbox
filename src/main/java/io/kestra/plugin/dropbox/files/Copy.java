@@ -59,6 +59,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class Copy extends Task implements RunnableTask<Copy.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow reading source and writing destination.")
     @NotNull
     @PluginProperty(group = "main", secret = true)
