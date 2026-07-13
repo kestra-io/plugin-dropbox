@@ -57,6 +57,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow reading the target path.")
     @NotNull
     @PluginProperty(group = "main", secret = true)

@@ -59,6 +59,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class Move extends Task implements RunnableTask<Move.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow moving both source and destination paths.")
     @NotNull
     @PluginProperty(group = "main", secret = true)

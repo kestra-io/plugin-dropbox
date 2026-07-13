@@ -76,6 +76,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class Download extends Task implements RunnableTask<Download.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow reading the source path.")
     @NotNull
     @PluginProperty(group = "main", secret = true)

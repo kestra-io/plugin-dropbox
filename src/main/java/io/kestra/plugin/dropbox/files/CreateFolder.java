@@ -58,6 +58,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 public class CreateFolder extends Task implements RunnableTask<CreateFolder.Output> {
 
+    @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow writing to the target path.")
     @NotNull
     @PluginProperty(group = "main", secret = true)
