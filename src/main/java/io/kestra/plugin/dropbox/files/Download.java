@@ -60,7 +60,7 @@ import io.kestra.core.models.annotations.PluginProperty;
                 tasks:
                   - id: generate_path_file
                     type: io.kestra.plugin.core.storage.Write
-                    content: "/dynamic/data/{{ flow.startDate }}.json"
+                    content: "/dynamic/data/{{ execution.startDate }}.json"
                     # Kestra automatically generates the output URI
                   - id: download_dynamic_file
                     type: io.kestra.plugin.dropbox.files.Download

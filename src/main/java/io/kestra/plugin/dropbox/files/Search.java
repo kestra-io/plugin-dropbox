@@ -20,6 +20,7 @@ import com.dropbox.core.v2.files.SearchV2Result;
 import com.google.common.annotations.VisibleForTesting;
 
 import io.kestra.core.models.annotations.Example;
+import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
@@ -58,6 +59,13 @@ import io.kestra.core.models.annotations.PluginProperty;
                     path: "/reports"
                     fetchType: FETCH
                 """
+        )
+    },
+    metrics = {
+        @Metric(
+            name = "files.count",
+            type = Counter.TYPE,
+            description = "The number of matching files and folders found."
         )
     }
 )

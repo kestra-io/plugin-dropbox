@@ -14,7 +14,7 @@ Set `accessToken` to your Dropbox access token (required on every task). Store i
 
 `files.List` lists a folder — set `from` to the folder path. Set `recursive: true` to traverse subfolders. Control result handling with `fetchType` (default `FETCH`) and bound with `limit` (default 2000).
 
-`files.Search` searches for files — set `query` (required). Optionally scope to a `path`, filter by `fileExtensions`, and cap results with `maxResults`.
+`files.Search` searches for files — set `query` (required). Optionally scope to a `path`, filter by `fileExtensions`, and cap results with `maxResults`. Control result handling with `fetchType` (default `FETCH`).
 
 `files.Copy` copies a file or folder — set `from` and `to`. Set `autorename: true` to rename on conflict.
 

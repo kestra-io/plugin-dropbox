@@ -88,7 +88,7 @@ public class Upload extends Task implements RunnableTask<Upload.Output> {
 
     @Schema(
         title = "Write mode on conflict",
-        description = "`ADD` (default): keep existing file; new upload may be suffixed.\n`OVERWRITE`: replace existing file."
+        description = "`ADD` (default): keep the existing file; on a conflict the upload is renamed with a suffix only when `autorename` is true, otherwise it fails.\n`OVERWRITE`: replace existing file."
     )
     @Builder.Default
     @PluginProperty(group = "advanced")
