@@ -53,7 +53,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 @Schema(
     title = "Retrieve Dropbox item metadata",
-    description = "Retrieves metadata for a Dropbox file or folder. Path must start with `/` or come from a kestra:// URI. Optional media info disabled by default."
+    description = "Retrieves metadata for a Dropbox file or folder. Path must start with `/` or come from a kestra:// URI."
 )
 public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output> {
 
@@ -71,7 +71,7 @@ public class GetMetadata extends Task implements RunnableTask<GetMetadata.Output
     @PluginProperty(group = "main")
     private Object path;
 
-    @Schema(title = "Include media info", description = "Default false. When true, returns media info if available.")
+    @Schema(title = "Include media info", description = "Default false. When true, requests Dropbox to include photo/video media info in the lookup. Note: media info is not currently exposed in this task's output.")
     @Builder.Default
     @PluginProperty(group = "advanced")
     private Property<Boolean> includeMediaInfo = Property.ofValue(false);

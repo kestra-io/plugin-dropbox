@@ -18,11 +18,11 @@ public class DropboxFile {
     @PluginProperty(group = "advanced")
     private final String name;
 
-    @Schema(title = "Unique item ID", description = "Dropbox path_lower for the entry.")
+    @Schema(title = "Lower-cased path", description = "Dropbox `path_lower` for the entry — the item's lower-cased path, not a stable unique ID.")
     @PluginProperty(group = "advanced")
     private final String id;
 
-    @Schema(title = "Display path", description = "Lower-case path for display.")
+    @Schema(title = "Display path", description = "Case-preserved display path from Dropbox.")
     @PluginProperty(group = "advanced")
     private final String path;
 
@@ -34,7 +34,7 @@ public class DropboxFile {
     @PluginProperty(group = "advanced")
     private final Long size;
 
-    @Schema(title = "Client modified time", description = "Last modified timestamp from Dropbox.")
+    @Schema(title = "Client modified time", description = "Last modified timestamp from Dropbox. Null for folders.")
     @PluginProperty(group = "advanced")
     private final Date clientModified;
 

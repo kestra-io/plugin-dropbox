@@ -68,7 +68,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 @Schema(
     title = "List Dropbox directory entries",
-    description = "Lists files and folders under a path (default root). Path can come from a string or kestra:// URI and should start with `/` when set. Supports recursion, limit (default 2000), and `fetchType` (default FETCH) to control memory vs storage output."
+    description = "Lists files and folders under a path (default root). The path is provided as a string and should start with `/` when set. Supports recursion, limit (default 2000), and `fetchType` (default FETCH) to control memory vs storage output."
 )
 public class List extends Task implements RunnableTask<List.Output> {
 
@@ -80,7 +80,7 @@ public class List extends Task implements RunnableTask<List.Output> {
 
     @Schema(
         title = "Directory path",
-        description = "Literal Dropbox path or kestra:// URI containing the path. Empty or null lists root. Should start with `/` when provided."
+        description = "Literal Dropbox path. Empty or null lists the root. Should start with `/` when provided."
     )
     @PluginProperty(group = "source")
     private Object from;
