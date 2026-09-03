@@ -4,7 +4,7 @@ Upload, download, search, and manage files and folders in Dropbox from Kestra fl
 
 ## Authentication
 
-Set `accessToken` to your Dropbox access token (required on every task). Store it in a [secret](https://kestra.io/docs/concepts/secret) and apply it globally with [plugin defaults](https://kestra.io/docs/workflow-components/plugin-defaults).
+Set `accessToken` to your Dropbox access token (required on every task). Store it in a [secret](https://kestra.io/docs/concepts/secret) and set it on each task.
 
 ## Tasks
 
