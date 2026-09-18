@@ -25,10 +25,10 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
-import io.kestra.core.models.tasks.Task;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
+import io.kestra.plugin.dropbox.AbstractCancellableTask;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -73,7 +73,7 @@ import io.kestra.core.models.annotations.PluginProperty;
     title = "Search Dropbox files and folders",
     description = "Searches Dropbox for a query under an optional path. Path must start with `/` if provided and can come from kestra:// URI. Supports extension filters, max results, and `fetchType` (default FETCH) controlling memory vs storage output."
 )
-public class Search extends Task implements RunnableTask<Search.Output> {
+public class Search extends AbstractCancellableTask implements RunnableTask<Search.Output> {
 
     @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow search within the specified scope.")
@@ -132,6 +132,8 @@ public class Search extends Task implements RunnableTask<Search.Output> {
         DbxClientV2 client = this.createClient(runContext);
 
         try {
+            this.throwIfCancelled("Dropbox search was cancelled");
+
             logger.info("Searching Dropbox for query: '{}'", rQuery);
 
             SearchOptions.Builder optionsBuilder = SearchOptions.newBuilder();
@@ -156,6 +158,8 @@ public class Search extends Task implements RunnableTask<Search.Output> {
                 if (!result.getHasMore() || (rFetchType == FetchType.FETCH_ONE && !allMatches.isEmpty())) {
                     break;
                 }
+
+                this.throwIfCancelled("Dropbox search was cancelled");
 
                 result = client.files().searchContinueV2(result.getCursor());
             }
