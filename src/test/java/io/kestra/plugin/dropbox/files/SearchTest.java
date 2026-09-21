@@ -6,12 +6,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.kestra.core.exceptions.KilledException;
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
@@ -24,7 +26,10 @@ import jakarta.inject.Inject;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @KestraTest
@@ -144,5 +149,98 @@ class SearchTest {
             assertThat(deserializedObject.get("name"), is("report.csv"));
             assertThat(deserializedObject.get("id"), is("/reports/report.csv"));
         }
+    }
+
+    @Test
+    void run_killedBeforeStart_throwsKilledException() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+
+        Search task = taskWith(clientMock, "report.csv");
+        task.kill();
+
+        KilledException exception = Assertions.assertThrows(KilledException.class, () -> task.run(runContext));
+        assertThat(exception.getMessage(), is("Dropbox search was cancelled"));
+        verify(clientMock, never()).files();
+    }
+
+    @Test
+    void run_stoppedBeforeStart_completesNormally() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        String query = "report.csv";
+
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        SearchV2Builder builderMock = mock(SearchV2Builder.class);
+        SearchV2Result resultMock = mock(SearchV2Result.class);
+        SearchMatchV2 matchMock = mock(SearchMatchV2.class);
+        MetadataV2 metadataV2Mock = mock(MetadataV2.class);
+        Metadata metadataMock = mock(Metadata.class);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.searchV2Builder(query)).thenReturn(builderMock);
+        when(builderMock.withOptions(any(SearchOptions.class))).thenReturn(builderMock);
+        when(builderMock.start()).thenReturn(resultMock);
+        when(resultMock.getMatches()).thenReturn(Collections.singletonList(matchMock));
+        when(resultMock.getHasMore()).thenReturn(false);
+        when(matchMock.getMetadata()).thenReturn(metadataV2Mock);
+        when(metadataV2Mock.getMetadataValue()).thenReturn(metadataMock);
+        when(metadataMock.getPathLower()).thenReturn("/reports/report.csv");
+
+        Search task = taskWith(clientMock, query);
+
+        // stop() is the graceful drain signal, not a kill. A task that ends itself there is emitted as a real
+        // failure, so the search runs on and core interrupts and resubmits it once the grace period expires.
+        task.stop();
+
+        Search.Output output = task.run(runContext);
+
+        assertThat(output.getRows().size(), is(1));
+    }
+
+    @Test
+    void run_killedDuringPagination_throwsKilledException() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        String query = "report.csv";
+
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        SearchV2Builder builderMock = mock(SearchV2Builder.class);
+        SearchV2Result firstPage = mock(SearchV2Result.class);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.searchV2Builder(query)).thenReturn(builderMock);
+        when(builderMock.withOptions(any(SearchOptions.class))).thenReturn(builderMock);
+        when(firstPage.getMatches()).thenReturn(Collections.emptyList());
+        when(firstPage.getHasMore()).thenReturn(true);
+
+        Search task = taskWith(clientMock, query);
+
+        // kill on the first page so the check guarding the next page request is hit without relying on timing
+        when(builderMock.start()).thenAnswer(invocation ->
+        {
+            task.kill();
+            return firstPage;
+        });
+
+        KilledException exception = Assertions.assertThrows(KilledException.class, () -> task.run(runContext));
+        assertThat(exception.getMessage(), is("Dropbox search was cancelled"));
+        verify(filesRequestsMock, never()).searchContinueV2(anyString());
+    }
+
+    private Search taskWith(DbxClientV2 clientMock, String query) {
+        return new Search(
+            Property.ofValue("fake-token"),
+            Property.ofValue(query),
+            "/reports",
+            null,
+            null,
+            Property.ofValue(FetchType.FETCH)
+        ) {
+            @Override
+            DbxClientV2 createClient(RunContext runContext) {
+                return clientMock;
+            }
+        };
     }
 }

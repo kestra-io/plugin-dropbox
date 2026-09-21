@@ -22,10 +22,10 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
-import io.kestra.core.models.tasks.Task;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
+import io.kestra.plugin.dropbox.AbstractCancellableTask;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -70,7 +70,7 @@ import io.kestra.core.models.annotations.PluginProperty;
     title = "List Dropbox directory entries",
     description = "Lists files and folders under a path (default root). The path is provided as a string and should start with `/` when set. Supports recursion, limit (default 2000), and `fetchType` (default FETCH) to control memory vs storage output."
 )
-public class List extends Task implements RunnableTask<List.Output> {
+public class List extends AbstractCancellableTask implements RunnableTask<List.Output> {
 
     @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow listing the target path.")
@@ -105,6 +105,9 @@ public class List extends Task implements RunnableTask<List.Output> {
 
     @Override
     public Output run(RunContext runContext) throws Exception {
+        // Before createClient, which would otherwise render the access token for an already-killed task.
+        this.throwIfCancelled("Dropbox listing was cancelled");
+
         Logger logger = runContext.logger();
 
         String rPath;
@@ -127,6 +130,7 @@ public class List extends Task implements RunnableTask<List.Output> {
         DbxClientV2 client = this.createClient(runContext);
 
         try {
+
             logger.info("Listing files in Dropbox path: '{}'", rPath.isEmpty() ? "/" : rPath);
 
             var listFolderBuilder = client.files().listFolderBuilder(rPath).withRecursive(rRecursive);
@@ -139,6 +143,8 @@ public class List extends Task implements RunnableTask<List.Output> {
 
             java.util.List<Metadata> allEntries = new ArrayList<>();
             while (true) {
+                this.throwIfCancelled("Dropbox listing was cancelled");
+
                 allEntries.addAll(result.getEntries());
 
                 if (!result.getHasMore() || (rFetchType == FetchType.FETCH_ONE && !allEntries.isEmpty())) {
@@ -165,6 +171,7 @@ public class List extends Task implements RunnableTask<List.Output> {
                     outputBuilder.rows(dropboxFiles);
                     break;
                 case STORE:
+                    this.throwIfCancelled("Dropbox listing was cancelled");
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
                     try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (Metadata entry : allEntries) {

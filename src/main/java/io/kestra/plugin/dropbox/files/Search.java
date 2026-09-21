@@ -25,10 +25,10 @@ import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
-import io.kestra.core.models.tasks.Task;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
+import io.kestra.plugin.dropbox.AbstractCancellableTask;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -73,7 +73,7 @@ import io.kestra.core.models.annotations.PluginProperty;
     title = "Search Dropbox files and folders",
     description = "Searches Dropbox for a query under an optional path. Path must start with `/` if provided and can come from kestra:// URI. Supports extension filters, max results, and `fetchType` (default FETCH) controlling memory vs storage output."
 )
-public class Search extends Task implements RunnableTask<Search.Output> {
+public class Search extends AbstractCancellableTask implements RunnableTask<Search.Output> {
 
     @ToString.Exclude
     @Schema(title = "Dropbox access token", description = "Token must allow search within the specified scope.")
@@ -112,6 +112,9 @@ public class Search extends Task implements RunnableTask<Search.Output> {
     @Override
     @SuppressWarnings("unchecked")
     public Output run(RunContext runContext) throws Exception {
+        // Before createClient, which would otherwise render the access token for an already-killed task.
+        this.throwIfCancelled("Dropbox search was cancelled");
+
         Logger logger = runContext.logger();
 
         String rQuery = runContext.render(this.query).as(String.class)
@@ -132,6 +135,7 @@ public class Search extends Task implements RunnableTask<Search.Output> {
         DbxClientV2 client = this.createClient(runContext);
 
         try {
+
             logger.info("Searching Dropbox for query: '{}'", rQuery);
 
             SearchOptions.Builder optionsBuilder = SearchOptions.newBuilder();
@@ -151,6 +155,8 @@ public class Search extends Task implements RunnableTask<Search.Output> {
 
             List<SearchMatchV2> allMatches = new ArrayList<>();
             while (true) {
+                this.throwIfCancelled("Dropbox search was cancelled");
+
                 allMatches.addAll(result.getMatches());
 
                 if (!result.getHasMore() || (rFetchType == FetchType.FETCH_ONE && !allMatches.isEmpty())) {
@@ -180,6 +186,7 @@ public class Search extends Task implements RunnableTask<Search.Output> {
                     outputBuilder.rows(dropboxFiles);
                     break;
                 case STORE:
+                    this.throwIfCancelled("Dropbox search was cancelled");
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
                     try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (DropboxFile file : dropboxFiles) {

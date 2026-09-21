@@ -17,6 +17,7 @@ import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.ListFolderResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.kestra.core.exceptions.KilledException;
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
@@ -31,6 +32,8 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @KestraTest
@@ -185,5 +188,113 @@ class ListTest {
 
         Exception exception = Assertions.assertThrows(Exception.class, () -> task.run(runContext));
         assertThat(exception.getMessage(), is("Invalid Dropbox Access Token. Please check your secret or token."));
+    }
+
+    @Test
+    void run_killedBeforeStart_throwsKilledException() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+
+        List task = taskWith(clientMock);
+        task.kill();
+
+        KilledException exception = Assertions.assertThrows(KilledException.class, () -> task.run(runContext));
+        assertThat(exception.getMessage(), is("Dropbox listing was cancelled"));
+        verify(clientMock, never()).files();
+    }
+
+    @Test
+    void run_stoppedBeforeStart_completesNormally() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        DbxUserListFolderBuilder builderMock = mock(DbxUserListFolderBuilder.class);
+        FileMetadata fakeFile = mock(FileMetadata.class);
+        when(fakeFile.getPathLower()).thenReturn("id:1234");
+        ListFolderResult fakeResult = new ListFolderResult(Collections.singletonList(fakeFile), "fake_cursor", false);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.listFolderBuilder(anyString())).thenReturn(builderMock);
+        when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
+        when(builderMock.start()).thenReturn(fakeResult);
+
+        List task = taskWith(clientMock);
+
+        // stop() is the graceful drain signal, not a kill. A task that ends itself there is emitted as a real
+        // failure, so the listing runs on and core interrupts and resubmits it once the grace period expires.
+        task.stop();
+
+        List.Output output = task.run(runContext);
+
+        assertThat(output.getRows().size(), is(1));
+    }
+
+    @Test
+    void run_killedDuringPagination_throwsKilledException() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        DbxUserListFolderBuilder builderMock = mock(DbxUserListFolderBuilder.class);
+        FileMetadata fakeFile = mock(FileMetadata.class);
+        ListFolderResult firstPage = new ListFolderResult(Collections.singletonList(fakeFile), "fake_cursor", true);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.listFolderBuilder(anyString())).thenReturn(builderMock);
+        when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
+
+        List task = taskWith(clientMock);
+
+        // kill on the first page so the check guarding the next page request is hit without relying on timing
+        when(builderMock.start()).thenAnswer(invocation ->
+        {
+            task.kill();
+            return firstPage;
+        });
+
+        KilledException exception = Assertions.assertThrows(KilledException.class, () -> task.run(runContext));
+        assertThat(exception.getMessage(), is("Dropbox listing was cancelled"));
+        verify(filesRequestsMock, never()).listFolderContinue(anyString());
+    }
+
+    @Test
+    void run_killedDuringSinglePageListing_throwsKilledException() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        DbxUserListFolderBuilder builderMock = mock(DbxUserListFolderBuilder.class);
+        FileMetadata fakeFile = mock(FileMetadata.class);
+        ListFolderResult onlyPage = new ListFolderResult(Collections.singletonList(fakeFile), "fake_cursor", false);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.listFolderBuilder(anyString())).thenReturn(builderMock);
+        when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
+
+        List task = taskWith(clientMock);
+
+        // A listing that fits on one page breaks before the old in-loop check, so a kill landing during the
+        // fetch was ignored and the task returned successfully.
+        when(builderMock.start()).thenAnswer(invocation ->
+        {
+            task.kill();
+            return onlyPage;
+        });
+
+        KilledException exception = Assertions.assertThrows(KilledException.class, () -> task.run(runContext));
+        assertThat(exception.getMessage(), is("Dropbox listing was cancelled"));
+    }
+
+    private List taskWith(DbxClientV2 clientMock) {
+        return new List(
+            Property.ofValue("fake-token"),
+            "/test-path",
+            Property.ofValue(false),
+            Property.ofValue(100),
+            Property.ofValue(FetchType.FETCH)
+        ) {
+            @Override
+            DbxClientV2 createClient(RunContext runContext) {
+                return clientMock;
+            }
+        };
     }
 }
