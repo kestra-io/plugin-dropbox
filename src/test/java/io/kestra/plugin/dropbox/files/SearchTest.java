@@ -13,6 +13,7 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.kestra.core.exceptions.KestraRuntimeException;
 import io.kestra.core.exceptions.KilledException;
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
@@ -165,15 +166,16 @@ class SearchTest {
     }
 
     @Test
-    void run_stoppedBeforeStart_throwsKilledException() throws Exception {
+    void run_stoppedBeforeStart_failsWithoutReportingAKill() throws Exception {
         RunContext runContext = runContextFactory.of();
         DbxClientV2 clientMock = mock(DbxClientV2.class);
 
         Search task = taskWith(clientMock, "report.csv");
         task.stop();
 
-        KilledException exception = Assertions.assertThrows(KilledException.class, () -> task.run(runContext));
-        assertThat(exception.getMessage(), is("Dropbox search was cancelled"));
+        KestraRuntimeException exception = Assertions.assertThrows(KestraRuntimeException.class, () -> task.run(runContext));
+        assertThat(exception, not(instanceOf(KilledException.class)));
+        assertThat(exception.getMessage(), is("Dropbox search was cancelled: the worker is shutting down"));
         verify(clientMock, never()).files();
     }
 

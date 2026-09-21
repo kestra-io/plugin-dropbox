@@ -153,13 +153,13 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
 
             List<SearchMatchV2> allMatches = new ArrayList<>();
             while (true) {
+                this.throwIfCancelled("Dropbox search was cancelled");
+
                 allMatches.addAll(result.getMatches());
 
                 if (!result.getHasMore() || (rFetchType == FetchType.FETCH_ONE && !allMatches.isEmpty())) {
                     break;
                 }
-
-                this.throwIfCancelled("Dropbox search was cancelled");
 
                 result = client.files().searchContinueV2(result.getCursor());
             }
@@ -187,6 +187,7 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
                     try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (DropboxFile file : dropboxFiles) {
+                            this.throwIfCancelled("Dropbox search was cancelled");
                             FileSerde.write(outputStream, file);
                         }
                     }

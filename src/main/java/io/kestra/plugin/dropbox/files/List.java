@@ -141,13 +141,13 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
 
             java.util.List<Metadata> allEntries = new ArrayList<>();
             while (true) {
+                this.throwIfCancelled("Dropbox listing was cancelled");
+
                 allEntries.addAll(result.getEntries());
 
                 if (!result.getHasMore() || (rFetchType == FetchType.FETCH_ONE && !allEntries.isEmpty())) {
                     break;
                 }
-
-                this.throwIfCancelled("Dropbox listing was cancelled");
 
                 result = client.files().listFolderContinue(result.getCursor());
             }
@@ -172,6 +172,7 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
                     try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (Metadata entry : allEntries) {
+                            this.throwIfCancelled("Dropbox listing was cancelled");
                             FileSerde.write(outputStream, DropboxFile.of(entry));
                         }
                     }
