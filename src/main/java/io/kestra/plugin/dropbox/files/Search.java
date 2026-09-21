@@ -112,6 +112,9 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
     @Override
     @SuppressWarnings("unchecked")
     public Output run(RunContext runContext) throws Exception {
+        // Before createClient, which would otherwise render the access token for an already-killed task.
+        this.throwIfCancelled("Dropbox search was cancelled");
+
         Logger logger = runContext.logger();
 
         String rQuery = runContext.render(this.query).as(String.class)
@@ -132,7 +135,6 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
         DbxClientV2 client = this.createClient(runContext);
 
         try {
-            this.throwIfCancelled("Dropbox search was cancelled");
 
             logger.info("Searching Dropbox for query: '{}'", rQuery);
 
@@ -184,10 +186,10 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
                     outputBuilder.rows(dropboxFiles);
                     break;
                 case STORE:
+                    this.throwIfCancelled("Dropbox search was cancelled");
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
                     try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (DropboxFile file : dropboxFiles) {
-                            this.throwIfCancelled("Dropbox search was cancelled");
                             FileSerde.write(outputStream, file);
                         }
                     }

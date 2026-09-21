@@ -17,7 +17,6 @@ import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.ListFolderResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.kestra.core.exceptions.KestraRuntimeException;
 import io.kestra.core.exceptions.KilledException;
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
@@ -205,17 +204,29 @@ class ListTest {
     }
 
     @Test
-    void run_stoppedBeforeStart_failsWithoutReportingAKill() throws Exception {
+    void run_stoppedBeforeStart_completesNormally() throws Exception {
         RunContext runContext = runContextFactory.of();
         DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        DbxUserListFolderBuilder builderMock = mock(DbxUserListFolderBuilder.class);
+        FileMetadata fakeFile = mock(FileMetadata.class);
+        when(fakeFile.getPathLower()).thenReturn("id:1234");
+        ListFolderResult fakeResult = new ListFolderResult(Collections.singletonList(fakeFile), "fake_cursor", false);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.listFolderBuilder(anyString())).thenReturn(builderMock);
+        when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
+        when(builderMock.start()).thenReturn(fakeResult);
 
         List task = taskWith(clientMock);
+
+        // stop() is the graceful drain signal, not a kill. A task that ends itself there is emitted as a real
+        // failure, so the listing runs on and core interrupts and resubmits it once the grace period expires.
         task.stop();
 
-        KestraRuntimeException exception = Assertions.assertThrows(KestraRuntimeException.class, () -> task.run(runContext));
-        assertThat(exception, not(instanceOf(KilledException.class)));
-        assertThat(exception.getMessage(), is("Dropbox listing was cancelled: the worker is shutting down"));
-        verify(clientMock, never()).files();
+        List.Output output = task.run(runContext);
+
+        assertThat(output.getRows().size(), is(1));
     }
 
     @Test

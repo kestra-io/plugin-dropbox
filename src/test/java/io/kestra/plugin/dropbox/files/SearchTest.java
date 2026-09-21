@@ -13,7 +13,6 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.kestra.core.exceptions.KestraRuntimeException;
 import io.kestra.core.exceptions.KilledException;
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
@@ -166,17 +165,37 @@ class SearchTest {
     }
 
     @Test
-    void run_stoppedBeforeStart_failsWithoutReportingAKill() throws Exception {
+    void run_stoppedBeforeStart_completesNormally() throws Exception {
         RunContext runContext = runContextFactory.of();
-        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        String query = "report.csv";
 
-        Search task = taskWith(clientMock, "report.csv");
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        SearchV2Builder builderMock = mock(SearchV2Builder.class);
+        SearchV2Result resultMock = mock(SearchV2Result.class);
+        SearchMatchV2 matchMock = mock(SearchMatchV2.class);
+        MetadataV2 metadataV2Mock = mock(MetadataV2.class);
+        Metadata metadataMock = mock(Metadata.class);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.searchV2Builder(query)).thenReturn(builderMock);
+        when(builderMock.withOptions(any(SearchOptions.class))).thenReturn(builderMock);
+        when(builderMock.start()).thenReturn(resultMock);
+        when(resultMock.getMatches()).thenReturn(Collections.singletonList(matchMock));
+        when(resultMock.getHasMore()).thenReturn(false);
+        when(matchMock.getMetadata()).thenReturn(metadataV2Mock);
+        when(metadataV2Mock.getMetadataValue()).thenReturn(metadataMock);
+        when(metadataMock.getPathLower()).thenReturn("/reports/report.csv");
+
+        Search task = taskWith(clientMock, query);
+
+        // stop() is the graceful drain signal, not a kill. A task that ends itself there is emitted as a real
+        // failure, so the search runs on and core interrupts and resubmits it once the grace period expires.
         task.stop();
 
-        KestraRuntimeException exception = Assertions.assertThrows(KestraRuntimeException.class, () -> task.run(runContext));
-        assertThat(exception, not(instanceOf(KilledException.class)));
-        assertThat(exception.getMessage(), is("Dropbox search was cancelled: the worker is shutting down"));
-        verify(clientMock, never()).files();
+        Search.Output output = task.run(runContext);
+
+        assertThat(output.getRows().size(), is(1));
     }
 
     @Test

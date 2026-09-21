@@ -105,6 +105,9 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
 
     @Override
     public Output run(RunContext runContext) throws Exception {
+        // Before createClient, which would otherwise render the access token for an already-killed task.
+        this.throwIfCancelled("Dropbox listing was cancelled");
+
         Logger logger = runContext.logger();
 
         String rPath;
@@ -127,7 +130,6 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
         DbxClientV2 client = this.createClient(runContext);
 
         try {
-            this.throwIfCancelled("Dropbox listing was cancelled");
 
             logger.info("Listing files in Dropbox path: '{}'", rPath.isEmpty() ? "/" : rPath);
 
@@ -169,10 +171,10 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
                     outputBuilder.rows(dropboxFiles);
                     break;
                 case STORE:
+                    this.throwIfCancelled("Dropbox listing was cancelled");
                     File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
                     try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile), FileSerde.BUFFER_SIZE)) {
                         for (Metadata entry : allEntries) {
-                            this.throwIfCancelled("Dropbox listing was cancelled");
                             FileSerde.write(outputStream, DropboxFile.of(entry));
                         }
                     }
