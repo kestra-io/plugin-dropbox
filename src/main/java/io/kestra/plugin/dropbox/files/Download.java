@@ -2,10 +2,8 @@ package io.kestra.plugin.dropbox.files;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 
@@ -19,16 +17,17 @@ import com.google.common.annotations.VisibleForTesting;
 
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.runners.RunContext;
+import io.kestra.plugin.dropbox.DropboxPaths;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -84,7 +83,7 @@ public class Download extends Task implements RunnableTask<Download.Output> {
 
     @Schema(
         title = "Path to download",
-        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`."
+        description = "Literal Dropbox path or kestra:// URI containing the path. Must start with `/`, or be a Dropbox `id:`, `rev:` or `ns:` reference."
     )
     @NotNull
     @PluginProperty(group = "main")
@@ -94,28 +93,7 @@ public class Download extends Task implements RunnableTask<Download.Output> {
     public Output run(RunContext runContext) throws Exception {
         Logger logger = runContext.logger();
 
-        String rPath;
-        String renderedFrom = runContext.render(String.valueOf(this.from));
-
-        if (renderedFrom == null || renderedFrom.isBlank()) {
-            throw new IllegalArgumentException("'from' input is required and cannot be empty.");
-        }
-
-        if (renderedFrom.startsWith("kestra://")) {
-            URI fromUri = URI.create(renderedFrom);
-            try (InputStream inputStream = runContext.storage().getFile(fromUri)) {
-                rPath = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
-                logger.debug("Read Dropbox path '{}' from Kestra URI '{}'", rPath, fromUri);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to read Dropbox path from Kestra URI: " + renderedFrom, e);
-            }
-        } else {
-            rPath = renderedFrom;
-        }
-
-        if (rPath.isBlank()) {
-            throw new IllegalArgumentException("'from' resolved to an empty path");
-        }
+        String rPath = DropboxPaths.resolve(runContext, this.from, "from");
 
         DbxClientV2 client = this.createClient(runContext);
 

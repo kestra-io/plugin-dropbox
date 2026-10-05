@@ -2,7 +2,6 @@ package io.kestra.plugin.dropbox.files;
 
 import java.io.*;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
@@ -29,13 +29,13 @@ import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.dropbox.AbstractCancellableTask;
+import io.kestra.plugin.dropbox.DropboxPaths;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -119,7 +119,7 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
 
         String rQuery = runContext.render(this.query).as(String.class)
             .orElseThrow(() -> new IllegalArgumentException("'query' is required"));
-        String rPath = this.path == null ? null : this.renderPath(runContext, this.path, "path");
+        String rPath = DropboxPaths.resolveOptional(runContext, this.path, "path").orElse(null);
         Integer rMaxResults = this.maxResults == null ? null : runContext.render(this.maxResults).as(Integer.class).orElse(null);
 
         List<String> rFileExtensions = null;
@@ -211,32 +211,6 @@ public class Search extends AbstractCancellableTask implements RunnableTask<Sear
             logger.error("Could not perform search. Error: {}", e.errorValue, e);
             throw new Exception("Could not perform search: " + e.errorValue.toString(), e);
         }
-    }
-
-    private String renderPath(RunContext runContext, Object pathSource, String fieldName) throws Exception {
-        String rPath;
-        String renderedFrom = runContext.render(String.valueOf(pathSource));
-
-        if (renderedFrom == null || renderedFrom.isBlank()) {
-            return null;
-        }
-
-        if (renderedFrom.startsWith("kestra://")) {
-            URI fromUri = URI.create(renderedFrom);
-            try (InputStream inputStream = runContext.storage().getFile(fromUri)) {
-                rPath = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
-            }
-        } else {
-            rPath = renderedFrom;
-        }
-
-        if (rPath.isBlank()) {
-            return null;
-        }
-        if (!rPath.startsWith("/")) {
-            throw new IllegalArgumentException("'" + fieldName + "' path must start with '/'");
-        }
-        return rPath;
     }
 
     @VisibleForTesting
