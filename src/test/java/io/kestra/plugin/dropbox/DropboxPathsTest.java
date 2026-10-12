@@ -109,6 +109,23 @@ class DropboxPathsTest {
     }
 
     @Test
+    void resolve_oversizedKestraUriFile_throws() throws Exception {
+        var runContext = runContextFactory.of();
+        var uri = storePath(runContext, "/" + "a".repeat(4096));
+
+        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> DropboxPaths.resolve(runContext, uri.toString(), "from"));
+        assertThat(exception.getMessage(), containsString("is larger than 4096 bytes"));
+    }
+
+    @Test
+    void resolve_kestraUriFileAtSizeLimit_isAccepted() throws Exception {
+        var runContext = runContextFactory.of();
+        var path = "/" + "a".repeat(4095);
+
+        assertThat(DropboxPaths.resolve(runContext, storePath(runContext, path).toString(), "from"), is(path));
+    }
+
+    @Test
     void resolveOptional_nullOrBlank_isEmpty() throws Exception {
         var runContext = runContextFactory.of();
 
