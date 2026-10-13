@@ -1,5 +1,6 @@
 package io.kestra.plugin.dropbox.files;
 
+import java.util.Date;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Assertions;
@@ -13,6 +14,7 @@ import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
+import io.kestra.plugin.dropbox.models.DropboxMediaInfo;
 
 import jakarta.inject.Inject;
 
@@ -21,6 +23,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @KestraTest
@@ -67,6 +70,49 @@ class GetMetadataTest {
         assertThat(output.getFile().getName(), is("file.txt"));
         assertThat(output.getFile().getId(), is("/file.txt"));
         assertThat(output.getFile().getSize(), is(123L));
+    }
+
+    @Test
+    void run_includeMediaInfo_exposesPhotoMetadata() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        String filePath = "/photos/example.jpg";
+        Date timeTaken = new Date(1_700_000_000_000L);
+
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        GetMetadataBuilder builderMock = mock(GetMetadataBuilder.class);
+        FileMetadata metadataMock = mock(FileMetadata.class);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.getMetadataBuilder(filePath)).thenReturn(builderMock);
+        when(builderMock.withIncludeMediaInfo(true)).thenReturn(builderMock);
+        when(builderMock.start()).thenReturn(metadataMock);
+        when(metadataMock.getName()).thenReturn("example.jpg");
+        when(metadataMock.getMediaInfo()).thenReturn(
+            MediaInfo.metadata(new PhotoMetadata(new Dimensions(1080, 1920), new GpsCoordinates(48.85, 2.35), timeTaken))
+        );
+
+        GetMetadata task = new GetMetadata(
+            Property.ofValue("fake-token"),
+            filePath,
+            Property.ofValue(true)
+        ) {
+            @Override
+            DbxClientV2 createClient(RunContext runContext) {
+                return clientMock;
+            }
+        };
+
+        DropboxMediaInfo mediaInfo = task.run(runContext).getFile().getMediaInfo();
+
+        verify(builderMock).withIncludeMediaInfo(true);
+        assertThat(mediaInfo.getType(), is("photo"));
+        assertThat(mediaInfo.isPending(), is(false));
+        assertThat(mediaInfo.getWidth(), is(1920L));
+        assertThat(mediaInfo.getHeight(), is(1080L));
+        assertThat(mediaInfo.getLatitude(), is(48.85));
+        assertThat(mediaInfo.getLongitude(), is(2.35));
+        assertThat(mediaInfo.getTimeTaken(), is(timeTaken));
     }
 
     @Test

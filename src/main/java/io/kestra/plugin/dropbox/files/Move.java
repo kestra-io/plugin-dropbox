@@ -1,9 +1,5 @@
 package io.kestra.plugin.dropbox.files;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 
 import com.dropbox.core.DbxRequestConfig;
@@ -16,17 +12,18 @@ import com.google.common.annotations.VisibleForTesting;
 
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.runners.RunContext;
+import io.kestra.plugin.dropbox.DropboxPaths;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -98,8 +95,8 @@ public class Move extends Task implements RunnableTask<Move.Output> {
     public Output run(RunContext runContext) throws Exception {
         Logger logger = runContext.logger();
 
-        String rFromPath = this.renderPath(runContext, this.from, "from");
-        String rToPath = this.renderPath(runContext, this.to, "to");
+        String rFromPath = DropboxPaths.resolve(runContext, this.from, "from");
+        String rToPath = DropboxPaths.resolve(runContext, this.to, "to");
 
         Boolean rAutorename = runContext.render(this.autorename).as(Boolean.class).orElse(false);
         Boolean rAllowOwnership = runContext.render(this.allowOwnershipTransfer).as(Boolean.class).orElse(false);
@@ -138,32 +135,6 @@ public class Move extends Task implements RunnableTask<Move.Output> {
             logger.error("Could not move item. Error: {}", message, e);
             throw new Exception("Could not move item: " + message, e);
         }
-    }
-
-    private String renderPath(RunContext runContext, Object pathSource, String fieldName) throws Exception {
-        String rPath;
-        String renderedFrom = runContext.render(String.valueOf(pathSource));
-
-        if (renderedFrom == null || renderedFrom.isBlank()) {
-            throw new IllegalArgumentException("'" + fieldName + "' input is required and cannot be empty.");
-        }
-
-        if (renderedFrom.startsWith("kestra://")) {
-            URI fromUri = URI.create(renderedFrom);
-            try (InputStream inputStream = runContext.storage().getFile(fromUri)) {
-                rPath = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
-            }
-        } else {
-            rPath = renderedFrom;
-        }
-
-        if (rPath.isBlank()) {
-            throw new IllegalArgumentException("'" + fieldName + "' resolved to an empty path");
-        }
-        if (!rPath.startsWith("/")) {
-            throw new IllegalArgumentException("'" + fieldName + "' path must start with '/'");
-        }
-        return rPath;
     }
 
     @VisibleForTesting

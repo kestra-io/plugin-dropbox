@@ -1,9 +1,5 @@
 package io.kestra.plugin.dropbox.files;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 
 import com.dropbox.core.DbxRequestConfig;
@@ -16,17 +12,18 @@ import com.google.common.annotations.VisibleForTesting;
 
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.runners.RunContext;
+import io.kestra.plugin.dropbox.DropboxPaths;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -75,32 +72,7 @@ public class Delete extends Task implements RunnableTask<Delete.Output> {
     public Output run(RunContext runContext) throws Exception {
         Logger logger = runContext.logger();
 
-        String rPath;
-        String renderedFrom = runContext.render(String.valueOf(this.from));
-
-        if (renderedFrom == null || renderedFrom.isBlank()) {
-            throw new IllegalArgumentException("'from' input is required and cannot be empty.");
-        }
-
-        if (renderedFrom.startsWith("kestra://")) {
-            URI fromUri = URI.create(renderedFrom);
-            try (InputStream inputStream = runContext.storage().getFile(fromUri)) {
-                rPath = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
-                logger.debug("Read Dropbox path '{}' from Kestra URI '{}'", rPath, fromUri);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to read Dropbox path from Kestra URI: " + renderedFrom, e);
-            }
-        } else {
-            rPath = renderedFrom;
-        }
-
-        if (rPath.isBlank()) {
-            throw new IllegalArgumentException("'from' resolved to an empty path");
-        }
-
-        if (!rPath.startsWith("/")) {
-            throw new IllegalArgumentException("'from' path must start with '/'");
-        }
+        String rPath = DropboxPaths.resolve(runContext, this.from, "from");
 
         DbxClientV2 client = this.createClient(runContext);
 

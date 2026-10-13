@@ -283,6 +283,69 @@ class ListTest {
         assertThat(exception.getMessage(), is("Dropbox listing was cancelled"));
     }
 
+    @Test
+    void run_fromKestraUriString_listsPathReadFromStorage() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        URI pathFileUri = runContext.storage().putFile(new ByteArrayInputStream("/uri/path".getBytes(StandardCharsets.UTF_8)), "path.txt");
+        DbxUserFilesRequests filesRequestsMock = mockEmptyListing();
+
+        taskWith(filesRequestsMock, pathFileUri.toString()).run(runContext);
+
+        verify(filesRequestsMock).listFolderBuilder("/uri/path");
+    }
+
+    @Test
+    void run_rootPaths_listRootAsEmptyPath() throws Exception {
+        RunContext runContext = runContextFactory.of();
+
+        for (String root : new String[] { null, "", "/" }) {
+            DbxUserFilesRequests filesRequestsMock = mockEmptyListing();
+
+            taskWith(filesRequestsMock, root).run(runContext);
+
+            verify(filesRequestsMock).listFolderBuilder("");
+        }
+    }
+
+    @Test
+    void run_missingLeadingSlash_throwsBeforeCallingDropbox() {
+        RunContext runContext = runContextFactory.of();
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> taskWith(filesRequestsMock, "test-path").run(runContext)
+        );
+        assertThat(exception.getMessage(), containsString("'from' path must start with '/'"));
+        verify(filesRequestsMock, never()).listFolderBuilder(anyString());
+    }
+
+    private DbxUserFilesRequests mockEmptyListing() throws Exception {
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        DbxUserListFolderBuilder builderMock = mock(DbxUserListFolderBuilder.class);
+        when(filesRequestsMock.listFolderBuilder(anyString())).thenReturn(builderMock);
+        when(builderMock.withRecursive(anyBoolean())).thenReturn(builderMock);
+        when(builderMock.start()).thenReturn(new ListFolderResult(Collections.emptyList(), "fake_cursor", false));
+        return filesRequestsMock;
+    }
+
+    private List taskWith(DbxUserFilesRequests filesRequestsMock, Object from) {
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        return new List(
+            Property.ofValue("fake-token"),
+            from,
+            Property.ofValue(false),
+            Property.ofValue(100),
+            Property.ofValue(FetchType.FETCH)
+        ) {
+            @Override
+            DbxClientV2 createClient(RunContext runContext) {
+                return clientMock;
+            }
+        };
+    }
+
     private List taskWith(DbxClientV2 clientMock) {
         return new List(
             Property.ofValue("fake-token"),

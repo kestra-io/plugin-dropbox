@@ -2,7 +2,6 @@ package io.kestra.plugin.dropbox.files;
 
 import java.io.*;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -19,6 +18,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Metric;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
@@ -26,13 +26,13 @@ import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.FileSerde;
 import io.kestra.plugin.dropbox.AbstractCancellableTask;
+import io.kestra.plugin.dropbox.DropboxPaths;
 import io.kestra.plugin.dropbox.models.DropboxFile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -68,7 +68,7 @@ import io.kestra.core.models.annotations.PluginProperty;
 )
 @Schema(
     title = "List Dropbox directory entries",
-    description = "Lists files and folders under a path (default root). The path is provided as a string and should start with `/` when set. Supports recursion, limit (default 2000), and `fetchType` (default FETCH) to control memory vs storage output."
+    description = "Lists files and folders under a path (default root). Path must start with `/` when set and can come from a kestra:// URI. Supports recursion, limit (default 2000), and `fetchType` (default FETCH) to control memory vs storage output."
 )
 public class List extends AbstractCancellableTask implements RunnableTask<List.Output> {
 
@@ -80,7 +80,7 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
 
     @Schema(
         title = "Directory path",
-        description = "Literal Dropbox path. Empty or null lists the root. Should start with `/` when provided."
+        description = "Literal Dropbox path or kestra:// URI containing the path. Empty, null or `/` lists the root. Must start with `/` when set, or be a Dropbox `id:` or `ns:` reference."
     )
     @PluginProperty(group = "source")
     private Object from;
@@ -110,18 +110,10 @@ public class List extends AbstractCancellableTask implements RunnableTask<List.O
 
         Logger logger = runContext.logger();
 
-        String rPath;
-        if (this.from instanceof String) {
-            rPath = runContext.render((String) this.from);
-        } else if (this.from instanceof URI) {
-            try (InputStream inputStream = runContext.storage().getFile((URI) this.from)) {
-                rPath = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            }
-        } else if (this.from == null) {
-            rPath = "";
-        } else {
-            throw new IllegalArgumentException("Invalid 'from' type: " + this.from.getClass());
-        }
+        // Dropbox addresses the root as "" and rejects "/".
+        String rPath = DropboxPaths.resolveOptional(runContext, this.from, "from")
+            .filter(path -> !path.equals("/"))
+            .orElse("");
 
         FetchType rFetchType = runContext.render(this.fetchType).as(FetchType.class).orElse(FetchType.FETCH);
         Boolean rRecursive = runContext.render(this.recursive).as(Boolean.class).orElse(false);

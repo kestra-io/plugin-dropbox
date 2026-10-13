@@ -1,7 +1,6 @@
 package io.kestra.plugin.dropbox.files;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

@@ -24,6 +24,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @KestraTest
@@ -134,6 +136,55 @@ class DownloadTest {
             String storedContent = reader.readLine();
             assertThat(storedContent, is(fileContent));
         }
+    }
+
+    @Test
+    void run_fromFileId_passesIdToDropbox() throws Exception {
+        RunContext runContext = runContextFactory.of();
+        String fileId = "id:a4ayc_80_OEAAAAAAAAAXw";
+
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+        DbxUserFilesRequests filesRequestsMock = mock(DbxUserFilesRequests.class);
+        DownloadBuilder downloadBuilderMock = mock(DownloadBuilder.class);
+        FileMetadata metadataMock = mock(FileMetadata.class);
+
+        when(clientMock.files()).thenReturn(filesRequestsMock);
+        when(filesRequestsMock.downloadBuilder(fileId)).thenReturn(downloadBuilderMock);
+        when(downloadBuilderMock.download(any(OutputStream.class))).thenReturn(metadataMock);
+
+        Download task = new Download(
+            Property.ofValue("fake-token"),
+            fileId
+        ) {
+            @Override
+            DbxClientV2 createClient(RunContext runContext) {
+                return clientMock;
+            }
+        };
+
+        task.run(runContext);
+
+        verify(filesRequestsMock).downloadBuilder(fileId);
+    }
+
+    @Test
+    void run_missingLeadingSlash_throwsBeforeCallingDropbox() {
+        RunContext runContext = runContextFactory.of();
+        DbxClientV2 clientMock = mock(DbxClientV2.class);
+
+        Download task = new Download(
+            Property.ofValue("fake-token"),
+            "data/file.txt"
+        ) {
+            @Override
+            DbxClientV2 createClient(RunContext runContext) {
+                return clientMock;
+            }
+        };
+
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> task.run(runContext));
+        assertThat(exception.getMessage(), containsString("'from' path must start with '/'"));
+        verify(clientMock, never()).files();
     }
 
     @Test

@@ -6,10 +6,11 @@ import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.files.FolderMetadata;
 import com.dropbox.core.v2.files.Metadata;
 
+import io.kestra.core.models.annotations.PluginProperty;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-import io.kestra.core.models.annotations.PluginProperty;
 
 @Builder
 @Getter
@@ -38,6 +39,10 @@ public class DropboxFile {
     @PluginProperty(group = "advanced")
     private final Date clientModified;
 
+    @Schema(title = "Media info", description = "Photo or video metadata. Only populated by `GetMetadata` with `includeMediaInfo: true`.")
+    @PluginProperty(group = "advanced")
+    private final DropboxMediaInfo mediaInfo;
+
     public static DropboxFile of(Metadata metadata) {
         DropboxFileBuilder builder = DropboxFile.builder()
             .name(metadata.getName())
@@ -48,7 +53,8 @@ public class DropboxFile {
             FileMetadata file = (FileMetadata) metadata;
             builder.type("file")
                 .size(file.getSize())
-                .clientModified(file.getClientModified());
+                .clientModified(file.getClientModified())
+                .mediaInfo(DropboxMediaInfo.of(file.getMediaInfo()));
         } else if (metadata instanceof FolderMetadata) {
             builder.type("folder");
         }
