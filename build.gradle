@@ -40,8 +40,8 @@ tasks.withType(JavaCompile).configureEach {
 configurations.all {
     resolutionStrategy {
         // Security pin (jackson-core, jackson-databind). Remove once the Kestra platform BOM bumps Jackson to 2.21.7+.
-        force "com.fasterxml.jackson.core:jackson-databind:2.21.7"
-        force "com.fasterxml.jackson.core:jackson-core:2.21.7"
+        force "com.fasterxml.jackson.core:jackson-databind:2.22.4"
+        force "com.fasterxml.jackson.core:jackson-core:2.22.4"
     }
 }
 
